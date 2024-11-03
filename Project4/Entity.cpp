@@ -147,13 +147,10 @@ void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint textu
 
 bool const Entity::check_collision(Entity* other) const
 {
-    if(other->m_is_active) {
-        float x_distance = fabs(m_position.x - other->m_position.x) - ((m_width + other->m_width) / 2.0f);
-        float y_distance = fabs(m_position.y - other->m_position.y) - ((m_height + other->m_height) / 2.0f);
-        
-        return x_distance < 0.0f && y_distance < 0.0f;
-    }
-    return false;
+    float x_distance = fabs(m_position.x - other->m_position.x) - ((m_width + other->m_width) / 2.0f);
+    float y_distance = fabs(m_position.y - other->m_position.y) - ((m_height + other->m_height) / 2.0f);
+
+    return x_distance < 0.0f && y_distance < 0.0f;
 }
 
 void const Entity::check_collision_y(Entity *collidable_entities, int collidable_entity_count)
@@ -180,14 +177,6 @@ void const Entity::check_collision_y(Entity *collidable_entities, int collidable
 
                 // Collision!
                 m_collided_bottom  = true;
-                int limit = 100;
-                int randomInt = rand() % limit;  // range [0, 100)
-                std::cout << randomInt << std::endl;
-                if (randomInt < collidable_entity_count) {
-                    if (randomInt == i) {
-                        collidable_entities[i].deactivate();
-                    }
-                }
             }
         }
     }
@@ -261,6 +250,7 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
 
     m_position.x += m_velocity.x * delta_time;
     check_collision_x(collidable_entities, collidable_entity_count);
+
     if (m_is_jumping)
     {
         m_is_jumping = false;
@@ -269,6 +259,7 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
 
     m_model_matrix = glm::mat4(1.0f);
     m_model_matrix = glm::translate(m_model_matrix, m_position);
+    m_model_matrix = glm::scale(m_model_matrix, m_scale);
 }
 
 

@@ -1,3 +1,14 @@
+/**
+* Author: Jason Wu
+* Assignment: Rise of the AI
+* Date due: 2024-11-9, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
+
 #define GL_SILENCE_DEPRECATION
 #define STB_IMAGE_IMPLEMENTATION
 #define LOG(argument) std::cout << argument << '\n'
@@ -27,11 +38,12 @@ struct GameState
 {
     Entity* player;
     Entity* platforms;
+    Entity* background;
 };
 
 // ––––– CONSTANTS ––––– //
-constexpr int WINDOW_WIDTH  = 640,
-          WINDOW_HEIGHT = 480;
+constexpr int WINDOW_WIDTH  = 640 * 2,
+          WINDOW_HEIGHT = 800;
 
 constexpr float BG_RED     = 0.1922f,
             BG_BLUE    = 0.549f,
@@ -49,6 +61,7 @@ constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 constexpr char SPRITESHEET_FILEPATH[] = "assets/george_0.png";
 constexpr char PLATFORM_FILEPATH[]    = "assets/platformPack_tile027.png";
+constexpr char BACKGROUND_IMG_FILEPATH[]    = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/windrise-background-4k.png";
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -58,7 +71,7 @@ constexpr int CD_QUAL_FREQ    = 44100,
           AUDIO_CHAN_AMT  = 2,     // stereo
           AUDIO_BUFF_SIZE = 4096;
 
-constexpr char BGM_FILEPATH[] = "assets/crypto.mp3",
+constexpr char BGM_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/galactic.mp3",
            SFX_FILEPATH[] = "assets/bounce.wav";
 
 constexpr int PLAY_ONCE = 0,    // play once, loop never
@@ -157,6 +170,13 @@ void initialise()
 
     // ––––– SFX ––––– //
     g_jump_sfx = Mix_LoadWAV(SFX_FILEPATH);
+    
+    // ––––– Background Image ––––– //
+    GLuint background_texture_id = load_texture(BACKGROUND_IMG_FILEPATH);
+    g_state.background = new Entity();
+    g_state.background->set_texture_id(background_texture_id);
+    g_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
+    g_state.background->update(0.0f, NULL, NULL, 0);
 
     // ––––– PLATFORMS ––––– //
     GLuint platform_texture_id = load_texture(PLATFORM_FILEPATH);
@@ -211,6 +231,7 @@ void initialise()
     // ––––– GENERAL ––––– //
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
 }
 
 void process_input()
@@ -296,26 +317,18 @@ void update()
         g_state.player->update(FIXED_TIMESTEP, NULL, g_state.platforms, PLATFORM_COUNT);
         delta_time -= FIXED_TIMESTEP;
     }
-    
+
     g_accumulator = delta_time;
-    
-    
-    
 }
 
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    g_state.background->render(&g_program);
     g_state.player->render(&g_program);
-    
 
-
-    for (int i = 0; i < PLATFORM_COUNT; i++) {
-        if (g_state.platforms[i].getActive()) {
-            g_state.platforms[i].render(&g_program);
-        }
-    }
+    for (int i = 0; i < PLATFORM_COUNT; i++) g_state.platforms[i].render(&g_program);
 
     SDL_GL_SwapWindow(g_display_window);
 }
