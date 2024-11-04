@@ -15,8 +15,9 @@
 #define GL_GLEXT_PROTOTYPES 1
 #define FIXED_TIMESTEP 0.0166666f
 #define PLATFORM_COUNT 10
-#define MAP_WIDTH 16
-#define MAP_HEIGHT 5
+const int MAP_WIDTH = 10;
+const int MAP_HEIGHT = 10;
+
 
 #ifdef _WINDOWS
 #include <GL/glew.h>
@@ -72,7 +73,7 @@ constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 constexpr char SPRITESHEET_FILEPATH[] = "assets/george_0.png";
 constexpr char PLATFORM_FILEPATH[]    = "assets/platformPack_tile027.png";
 constexpr char BACKGROUND_IMG_FILEPATH[]    = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/windrise-background-4k.png";
-constexpr char MAP_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/tilemap.png";
+constexpr char MAP_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/new_tilemap.png";
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -103,13 +104,18 @@ float g_accumulator = 0.0f;
 
 int healthState = 0;
 
-int MAP_DATA[] =
+unsigned int MAP_DATA[] =
 {
-    -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-    2, 2, 1, 1, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 3,  // Row 0
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 1
+        1, 0, 1, 1, 1, 1, 1, 0, 0, 1,  // Row 2
+        1, 0, 1, 0, 0, 0, 1, 0, 0, 1,  // Row 3
+        1, 0, 1, 0, 1, 1, 1, 0, 0, 1,  // Row 4
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 5
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // Row 6
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 7
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // Row 8
+        4, 1, 1, 1, 1, 1, 1, 1, 1, 2   // Row 9
 };
 
 // ––––– GENERAL FUNCTIONS ––––– //
@@ -188,8 +194,8 @@ void initialise()
     GLuint background_texture_id = load_texture(BACKGROUND_IMG_FILEPATH, LINEAR);
     g_game_state.background = new Entity();
     g_game_state.background->set_texture_id(background_texture_id);
-    g_game_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
-    g_game_state.background->update(0.0f, NULL, NULL, 0);
+    g_game_state.background->set_scale(glm::vec3(1.0f, 1.0f, 0.0f));
+    g_game_state.background->update(0.0f, NULL, NULL, 0, NULL);
 
     // ––––– MAP ––––– //
     GLuint map_texture_id = load_texture(MAP_TILESET_FILEPATH, NEAREST);
@@ -206,7 +212,7 @@ void initialise()
         g_game_state.platforms[i].set_width(0.8f);
         g_game_state.platforms[i].set_height(1.0f);
         g_game_state.platforms[i].set_entity_type(PLATFORM);
-        g_game_state.platforms[i].update(0.0f, NULL, NULL, 0);
+        g_game_state.platforms[i].update(0.0f, NULL, NULL, 0, NULL);
     }
     
     // ––––– HEALTH BAR ––––– //
@@ -223,7 +229,7 @@ void initialise()
         g_game_state.healthbar[i].set_texture_id(health_texture_ids[i]);
         g_game_state.healthbar[i].set_position(glm::vec3(4.5f, 3.5f, 0.0f));
         g_game_state.healthbar[i].set_scale(glm::vec3(0.5f, 0.25f, 0.0f));
-        g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0);
+        g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0, NULL);
     }
     
 
@@ -268,7 +274,7 @@ void initialise()
 
 
     // Jumping
-    g_game_state.player->set_jumping_power(3.0f);
+    g_game_state.player->set_jumping_power(5.0f);
 
     // ––––– GENERAL ––––– //
     glEnable(GL_BLEND);
@@ -356,7 +362,8 @@ void update()
 
     while (delta_time >= FIXED_TIMESTEP)
     {
-        g_game_state.player->update(FIXED_TIMESTEP, NULL, g_game_state.platforms, PLATFORM_COUNT);
+        g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
+                                    g_game_state.map);
         delta_time -= FIXED_TIMESTEP;
     }
     
@@ -370,7 +377,7 @@ void render()
 
     g_game_state.healthbar[healthState].render(&g_program);
     g_game_state.map->render(&g_program);
-    for (int i = 0; i < PLATFORM_COUNT; i++) g_game_state.platforms[i].render(&g_program);
+//    for (int i = 0; i < PLATFORM_COUNT; i++) g_game_state.platforms[i].render(&g_program);
     g_game_state.player->render(&g_program);
     SDL_GL_SwapWindow(g_display_window);
 }

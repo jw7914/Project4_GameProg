@@ -88,6 +88,7 @@
 		BF4367AB2CD8716300E9D7CF /* Map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Map.h; sourceTree = "<group>"; };
 		BF4367AC2CD8716300E9D7CF /* Map.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Map.cpp; sourceTree = "<group>"; };
 		BF4367AF2CD8772700E9D7CF /* tilemap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tilemap.png; sourceTree = "<group>"; };
+		BF4367B02CD8908000E9D7CF /* new_tilemap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = new_tilemap.png; sourceTree = "<group>"; };
 		BF6DF7B52CC2F22400772AA0 /* bounce.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bounce.wav; sourceTree = "<group>"; };
 		BF6DF7B62CC2F22400772AA0 /* crypto.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = crypto.mp3; sourceTree = "<group>"; };
 		BF6DF7B72CC2F22400772AA0 /* font1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = font1.png; sourceTree = "<group>"; };
@@ -164,6 +165,7 @@
 		BF6DF7BB2CC2F22400772AA0 /* assets */ = {
 			isa = PBXGroup;
 			children = (
+				BF4367B02CD8908000E9D7CF /* new_tilemap.png */,
 				BF43678C2CD834D200E9D7CF /* retro-jump-3-236683.wav */,
 				BF43677C2CD8240E00E9D7CF /* windrise-background-4k.png */,
 				BF6DF7B52CC2F22400772AA0 /* bounce.wav */,
