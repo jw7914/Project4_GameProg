@@ -34,11 +34,14 @@
 #include "Entity.h"
 
 // ––––– STRUCTS AND ENUMS ––––– //
+enum FilterType { NEAREST, LINEAR};
+
 struct GameState
 {
     Entity* player;
     Entity* platforms;
     Entity* background;
+    Entity * healthbar;
 };
 
 // ––––– CONSTANTS ––––– //
@@ -62,6 +65,7 @@ constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 constexpr char SPRITESHEET_FILEPATH[] = "assets/george_0.png";
 constexpr char PLATFORM_FILEPATH[]    = "assets/platformPack_tile027.png";
 constexpr char BACKGROUND_IMG_FILEPATH[]    = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/windrise-background-4k.png";
+
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -94,33 +98,37 @@ glm::mat4 g_view_matrix, g_projection_matrix;
 float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
 
+int healthState = 0;
+
 // ––––– GENERAL FUNCTIONS ––––– //
-GLuint load_texture(const char* filepath)
+GLuint load_texture(const char* filepath, FilterType filterType)
 {
-    int width, height, number_of_components;
-    unsigned char* image = stbi_load(filepath, &width, &height, &number_of_components, STBI_rgb_alpha);
+   int width, height, number_of_components;
+   unsigned char* image = stbi_load(filepath, &width, &height, &number_of_components, STBI_rgb_alpha);
 
-    if (image == NULL)
-    {
-        LOG("Unable to load image. Make sure the path is correct.");
-        assert(false);
-    }
+   if (image == NULL)
+   {
+       LOG("Unable to load image. Make sure the path is correct.");
+       assert(false);
+   }
 
-    GLuint textureID;
-    glGenTextures(NUMBER_OF_TEXTURES, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, LEVEL_OF_DETAIL, GL_RGBA, width, height, TEXTURE_BORDER, GL_RGBA, GL_UNSIGNED_BYTE, image);
+   GLuint textureID;
+   glGenTextures(NUMBER_OF_TEXTURES, &textureID);
+   glBindTexture(GL_TEXTURE_2D, textureID);
+   glTexImage2D(GL_TEXTURE_2D, LEVEL_OF_DETAIL, GL_RGBA, width, height, TEXTURE_BORDER,
+                GL_RGBA, GL_UNSIGNED_BYTE, image);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                   filterType == NEAREST ? GL_NEAREST : GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                   filterType == NEAREST ? GL_NEAREST : GL_LINEAR);
 
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   stbi_image_free(image);
 
-    stbi_image_free(image);
-
-    return textureID;
+   return textureID;
 }
 
 void initialise()
@@ -172,14 +180,14 @@ void initialise()
     g_jump_sfx = Mix_LoadWAV(SFX_FILEPATH);
     
     // ––––– Background Image ––––– //
-    GLuint background_texture_id = load_texture(BACKGROUND_IMG_FILEPATH);
+    GLuint background_texture_id = load_texture(BACKGROUND_IMG_FILEPATH, LINEAR);
     g_state.background = new Entity();
     g_state.background->set_texture_id(background_texture_id);
     g_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
     g_state.background->update(0.0f, NULL, NULL, 0);
 
     // ––––– PLATFORMS ––––– //
-    GLuint platform_texture_id = load_texture(PLATFORM_FILEPATH);
+    GLuint platform_texture_id = load_texture(PLATFORM_FILEPATH, LINEAR);
 
     g_state.platforms = new Entity[PLATFORM_COUNT];
 
@@ -193,10 +201,27 @@ void initialise()
         g_state.platforms[i].set_entity_type(PLATFORM);
         g_state.platforms[i].update(0.0f, NULL, NULL, 0);
     }
-
+    
+    // ––––– HEALTH BAR ––––– //
+    g_state.healthbar = new Entity[5];
+    std::vector<GLuint> health_texture_ids = {
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_full.png", NEAREST),
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_medium.png", NEAREST),
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_low.png", NEAREST),
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_verylow.png", NEAREST),
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_none.png", NEAREST)
+    };
+    for (int i = 0; i < 5; i++) {
+        g_state.healthbar[i] = Entity();
+        g_state.healthbar[i].set_texture_id(health_texture_ids[i]);
+        g_state.healthbar[i].set_position(glm::vec3(4.5f, 3.5f, 0.0f));
+        g_state.healthbar[i].set_scale(glm::vec3(0.5f, 0.25f, 0.0f));
+        g_state.healthbar[i].update(0.0f, NULL, NULL, 0);
+    }
+    
 
     // ––––– PLAYER (GEORGE) ––––– //
-    GLuint player_texture_id = load_texture(SPRITESHEET_FILEPATH);
+    GLuint player_texture_id = load_texture(SPRITESHEET_FILEPATH, NEAREST);
 
     int player_walking_animation[4][4] =
     {
@@ -223,6 +248,16 @@ void initialise()
         1.0f,                       // height
         PLAYER
     );
+    
+    std::vector<GLuint> cat_texture_ids = {
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Attack_2.png", NEAREST),   // IDLE spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Idle.png", NEAREST),  // ATTACK spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Death.png", NEAREST), // DEATH spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Run.png", NEAREST), // RUN spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Take_Damage.png", NEAREST) // DAMAGE spritesheet
+    };
+    
+    
 
 
     // Jumping
@@ -317,17 +352,17 @@ void update()
         g_state.player->update(FIXED_TIMESTEP, NULL, g_state.platforms, PLATFORM_COUNT);
         delta_time -= FIXED_TIMESTEP;
     }
-
+    
     g_accumulator = delta_time;
 }
 
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-
     g_state.background->render(&g_program);
     g_state.player->render(&g_program);
 
+    g_state.healthbar[healthState].render(&g_program);
     for (int i = 0; i < PLATFORM_COUNT; i++) g_state.platforms[i].render(&g_program);
 
     SDL_GL_SwapWindow(g_display_window);
@@ -338,6 +373,7 @@ void shutdown()
     SDL_Quit();
 
     delete [] g_state.platforms;
+    delete[] g_state.healthbar;
     delete g_state.player;
 }
 

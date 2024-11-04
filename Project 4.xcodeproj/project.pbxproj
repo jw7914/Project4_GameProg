@@ -16,6 +16,16 @@
 		BF3541F32C8B932200F7B096 /* shaders in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF3541E62C8B918300F7B096 /* shaders */; };
 		BF4367762CD8037800E9D7CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4367752CD8037800E9D7CF /* main.cpp */; };
 		BF43677A2CD81E2700E9D7CF /* galactic.mp3 in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367792CD81D6D00E9D7CF /* galactic.mp3 */; };
+		BF4367902CD85B6B00E9D7CF /* windrise-background-4k.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF43677C2CD8240E00E9D7CF /* windrise-background-4k.png */; };
+		BF4367972CD862BE00E9D7CF /* retro-jump-3-236683.wav in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF43678C2CD834D200E9D7CF /* retro-jump-3-236683.wav */; };
+		BF4367982CD862C300E9D7CF /* bounce.wav in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF6DF7B52CC2F22400772AA0 /* bounce.wav */; };
+		BF4367992CD862C700E9D7CF /* platformPack_tile027.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF6DF7B92CC2F22400772AA0 /* platformPack_tile027.png */; };
+		BF43679A2CD862CC00E9D7CF /* health_none.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367802CD833B100E9D7CF /* health_none.png */; };
+		BF43679B2CD862CE00E9D7CF /* health_verylow.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367812CD833B100E9D7CF /* health_verylow.png */; };
+		BF43679C2CD862D500E9D7CF /* health_medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF43677F2CD833B100E9D7CF /* health_medium.png */; };
+		BF43679D2CD862D600E9D7CF /* health_low.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF43677E2CD833B100E9D7CF /* health_low.png */; };
+		BF43679E2CD862DA00E9D7CF /* Meow-Knight_Attack_1.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367822CD833B100E9D7CF /* Meow-Knight_Attack_1.png */; };
+		BF43679F2CD862DC00E9D7CF /* Meow-Knight_Attack_2.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367832CD833B100E9D7CF /* Meow-Knight_Attack_2.png */; };
 		BF6DF7C42CC2F32000772AA0 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF6DF7C22CC2F32000772AA0 /* Entity.cpp */; };
 /* End PBXBuildFile section */
 
@@ -26,8 +36,18 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
+				BF4367972CD862BE00E9D7CF /* retro-jump-3-236683.wav in CopyFiles */,
+				BF4367982CD862C300E9D7CF /* bounce.wav in CopyFiles */,
+				BF4367992CD862C700E9D7CF /* platformPack_tile027.png in CopyFiles */,
 				BF3541F32C8B932200F7B096 /* shaders in CopyFiles */,
+				BF43679D2CD862D600E9D7CF /* health_low.png in CopyFiles */,
+				BF43679A2CD862CC00E9D7CF /* health_none.png in CopyFiles */,
+				BF43679E2CD862DA00E9D7CF /* Meow-Knight_Attack_1.png in CopyFiles */,
+				BF43679C2CD862D500E9D7CF /* health_medium.png in CopyFiles */,
 				BF43677A2CD81E2700E9D7CF /* galactic.mp3 in CopyFiles */,
+				BF43679F2CD862DC00E9D7CF /* Meow-Knight_Attack_2.png in CopyFiles */,
+				BF43679B2CD862CE00E9D7CF /* health_verylow.png in CopyFiles */,
+				BF4367902CD85B6B00E9D7CF /* windrise-background-4k.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -52,7 +72,7 @@
 		BF43677E2CD833B100E9D7CF /* health_low.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = health_low.png; sourceTree = "<group>"; };
 		BF43677F2CD833B100E9D7CF /* health_medium.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = health_medium.png; sourceTree = "<group>"; };
 		BF4367802CD833B100E9D7CF /* health_none.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = health_none.png; sourceTree = "<group>"; };
-		BF4367812CD833B100E9D7CF /* health_verylow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = health_verylow.png; sourceTree = "<group>"; };
+		BF4367812CD833B100E9D7CF /* health_verylow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = health_verylow.png; path = Project4/assets/health_verylow.png; sourceTree = SOURCE_ROOT; };
 		BF4367822CD833B100E9D7CF /* Meow-Knight_Attack_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Meow-Knight_Attack_1.png"; sourceTree = "<group>"; };
 		BF4367832CD833B100E9D7CF /* Meow-Knight_Attack_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Meow-Knight_Attack_2.png"; sourceTree = "<group>"; };
 		BF4367842CD833B100E9D7CF /* Meow-Knight_Attack_3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Meow-Knight_Attack_3.png"; sourceTree = "<group>"; };
