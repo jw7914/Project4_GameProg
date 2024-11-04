@@ -18,7 +18,7 @@
                BlueprintIdentifier = "BF3541D12C8B90B100F7B096"
                BuildableName = "Project4"
                BlueprintName = "Project4"
-               ReferencedContainer = "container:Project 4.xcodeproj">
+               ReferencedContainer = "container:Project4.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -49,7 +49,7 @@
             BlueprintIdentifier = "BF3541D12C8B90B100F7B096"
             BuildableName = "Project4"
             BlueprintName = "Project4"
-            ReferencedContainer = "container:Project 4.xcodeproj">
+            ReferencedContainer = "container:Project4.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
@@ -73,7 +73,7 @@
             BlueprintIdentifier = "BF3541D12C8B90B100F7B096"
             BuildableName = "Project4"
             BlueprintName = "Project4"
-            ReferencedContainer = "container:Project 4.xcodeproj">
+            ReferencedContainer = "container:Project4.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

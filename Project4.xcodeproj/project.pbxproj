@@ -26,6 +26,7 @@
 		BF43679D2CD862D600E9D7CF /* health_low.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF43677E2CD833B100E9D7CF /* health_low.png */; };
 		BF43679E2CD862DA00E9D7CF /* Meow-Knight_Attack_1.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367822CD833B100E9D7CF /* Meow-Knight_Attack_1.png */; };
 		BF43679F2CD862DC00E9D7CF /* Meow-Knight_Attack_2.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BF4367832CD833B100E9D7CF /* Meow-Knight_Attack_2.png */; };
+		BF4367AD2CD8716300E9D7CF /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4367AC2CD8716300E9D7CF /* Map.cpp */; };
 		BF6DF7C42CC2F32000772AA0 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF6DF7C22CC2F32000772AA0 /* Entity.cpp */; };
 /* End PBXBuildFile section */
 
@@ -84,6 +85,9 @@
 		BF43678A2CD833B100E9D7CF /* Meow-Knight_Run.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Meow-Knight_Run.png"; sourceTree = "<group>"; };
 		BF43678B2CD833B100E9D7CF /* Meow-Knight_Take_Damage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Meow-Knight_Take_Damage.png"; sourceTree = "<group>"; };
 		BF43678C2CD834D200E9D7CF /* retro-jump-3-236683.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "retro-jump-3-236683.wav"; sourceTree = "<group>"; };
+		BF4367AB2CD8716300E9D7CF /* Map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Map.h; sourceTree = "<group>"; };
+		BF4367AC2CD8716300E9D7CF /* Map.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Map.cpp; sourceTree = "<group>"; };
+		BF4367AF2CD8772700E9D7CF /* tilemap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tilemap.png; sourceTree = "<group>"; };
 		BF6DF7B52CC2F22400772AA0 /* bounce.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bounce.wav; sourceTree = "<group>"; };
 		BF6DF7B62CC2F22400772AA0 /* crypto.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = crypto.mp3; sourceTree = "<group>"; };
 		BF6DF7B72CC2F22400772AA0 /* font1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = font1.png; sourceTree = "<group>"; };
@@ -139,6 +143,8 @@
 				BF6DF7C12CC2F32000772AA0 /* Entity.h */,
 				BF6DF7C22CC2F32000772AA0 /* Entity.cpp */,
 				BF4367752CD8037800E9D7CF /* main.cpp */,
+				BF4367AB2CD8716300E9D7CF /* Map.h */,
+				BF4367AC2CD8716300E9D7CF /* Map.cpp */,
 			);
 			path = Project4;
 			sourceTree = "<group>";
@@ -182,6 +188,7 @@
 				BF4367892CD833B100E9D7CF /* Meow-Knight_Jump.png */,
 				BF43678A2CD833B100E9D7CF /* Meow-Knight_Run.png */,
 				BF43678B2CD833B100E9D7CF /* Meow-Knight_Take_Damage.png */,
+				BF4367AF2CD8772700E9D7CF /* tilemap.png */,
 			);
 			path = assets;
 			sourceTree = "<group>";
@@ -220,7 +227,7 @@
 					};
 				};
 			};
-			buildConfigurationList = BF3541CD2C8B90B100F7B096 /* Build configuration list for PBXProject "Project 4" */;
+			buildConfigurationList = BF3541CD2C8B90B100F7B096 /* Build configuration list for PBXProject "Project4" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -245,6 +252,7 @@
 			files = (
 				BF6DF7C42CC2F32000772AA0 /* Entity.cpp in Sources */,
 				BF3541E72C8B918300F7B096 /* ShaderProgram.cpp in Sources */,
+				BF4367AD2CD8716300E9D7CF /* Map.cpp in Sources */,
 				BF4367762CD8037800E9D7CF /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -404,7 +412,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BF3541CD2C8B90B100F7B096 /* Build configuration list for PBXProject "Project 4" */ = {
+		BF3541CD2C8B90B100F7B096 /* Build configuration list for PBXProject "Project4" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BF3541D72C8B90B100F7B096 /* Debug */,
