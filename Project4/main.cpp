@@ -15,23 +15,26 @@
 #define GL_GLEXT_PROTOTYPES 1
 #define FIXED_TIMESTEP 0.0166666f
 #define PLATFORM_COUNT 10
+#define MAP_WIDTH 16
+#define MAP_HEIGHT 5
 
 #ifdef _WINDOWS
 #include <GL/glew.h>
 #endif
 
+#include <SDL_mixer.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <SDL_mixer.h>
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "ShaderProgram.h"
 #include "stb_image.h"
 #include "cmath"
 #include <ctime>
-#include <vector>
 #include <cstdlib>
+#include <vector>
 #include "Entity.h"
+#include "Map.h"
 
 // ––––– STRUCTS AND ENUMS ––––– //
 enum FilterType { NEAREST, LINEAR};
@@ -41,7 +44,11 @@ struct GameState
     Entity* player;
     Entity* platforms;
     Entity* background;
-    Entity * healthbar;
+    Entity* healthbar;
+    
+    Map* map;
+    Mix_Music *bgm;
+    Mix_Chunk *jump_sfx;
 };
 
 // ––––– CONSTANTS ––––– //
@@ -65,7 +72,7 @@ constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 constexpr char SPRITESHEET_FILEPATH[] = "assets/george_0.png";
 constexpr char PLATFORM_FILEPATH[]    = "assets/platformPack_tile027.png";
 constexpr char BACKGROUND_IMG_FILEPATH[]    = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/windrise-background-4k.png";
-
+constexpr char MAP_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/tilemap.png";
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -76,18 +83,14 @@ constexpr int CD_QUAL_FREQ    = 44100,
           AUDIO_BUFF_SIZE = 4096;
 
 constexpr char BGM_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/galactic.mp3",
-           SFX_FILEPATH[] = "assets/bounce.wav";
+           SFX_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/retro-jump-3-236683.wav";
 
 constexpr int PLAY_ONCE = 0,    // play once, loop never
           NEXT_CHNL = -1,   // next available channel
           ALL_SFX_CHNL = -1;
 
-
-Mix_Music *g_music;
-Mix_Chunk *g_jump_sfx;
-
 // ––––– GLOBAL VARIABLES ––––– //
-GameState g_state;
+GameState g_game_state;
 
 SDL_Window* g_display_window;
 bool g_game_is_running = true;
@@ -99,6 +102,15 @@ float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
 
 int healthState = 0;
+
+int MAP_DATA[] =
+{
+    -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+    2, 2, 1, 1, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2
+};
 
 // ––––– GENERAL FUNCTIONS ––––– //
 GLuint load_texture(const char* filepath, FilterType filterType)
@@ -163,47 +175,42 @@ void initialise()
 
     // ––––– BGM ––––– //
     Mix_OpenAudio(CD_QUAL_FREQ, MIX_DEFAULT_FORMAT, AUDIO_CHAN_AMT, AUDIO_BUFF_SIZE);
-
-    // STEP 1: Have openGL generate a pointer to your music file
-    g_music = Mix_LoadMUS(BGM_FILEPATH); // works only with mp3 files
-
+    g_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
     // STEP 2: Play music
-    Mix_PlayMusic(
-                  g_music,  // music file
-                  -1        // -1 means loop forever; 0 means play once, look never
-                  );
-
-    // STEP 3: Set initial volume
+    g_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
+    Mix_PlayMusic(g_game_state.bgm, -1);
     Mix_VolumeMusic(MIX_MAX_VOLUME / 2.0);
 
     // ––––– SFX ––––– //
-    g_jump_sfx = Mix_LoadWAV(SFX_FILEPATH);
-    
+    g_game_state.jump_sfx = Mix_LoadWAV(SFX_FILEPATH);
+
     // ––––– Background Image ––––– //
     GLuint background_texture_id = load_texture(BACKGROUND_IMG_FILEPATH, LINEAR);
-    g_state.background = new Entity();
-    g_state.background->set_texture_id(background_texture_id);
-    g_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
-    g_state.background->update(0.0f, NULL, NULL, 0);
+    g_game_state.background = new Entity();
+    g_game_state.background->set_texture_id(background_texture_id);
+    g_game_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
+    g_game_state.background->update(0.0f, NULL, NULL, 0);
 
-    // ––––– PLATFORMS ––––– //
+    // ––––– MAP ––––– //
+    GLuint map_texture_id = load_texture(MAP_TILESET_FILEPATH, NEAREST);
+    g_game_state.map = new Map(MAP_WIDTH, MAP_HEIGHT, MAP_DATA, map_texture_id, 1.0f, 20, 9);
     GLuint platform_texture_id = load_texture(PLATFORM_FILEPATH, LINEAR);
 
-    g_state.platforms = new Entity[PLATFORM_COUNT];
+    g_game_state.platforms = new Entity[PLATFORM_COUNT];
 
     // Set the type of every platform entity to PLATFORM
     for (int i = 0; i < PLATFORM_COUNT; i++)
     {
-        g_state.platforms[i].set_texture_id(platform_texture_id);
-        g_state.platforms[i].set_position(glm::vec3(i - PLATFORM_COUNT / 2.0f, -3.0f, 0.0f));
-        g_state.platforms[i].set_width(0.8f);
-        g_state.platforms[i].set_height(1.0f);
-        g_state.platforms[i].set_entity_type(PLATFORM);
-        g_state.platforms[i].update(0.0f, NULL, NULL, 0);
+        g_game_state.platforms[i].set_texture_id(platform_texture_id);
+        g_game_state.platforms[i].set_position(glm::vec3(i - PLATFORM_COUNT / 2.0f, -3.0f, 0.0f));
+        g_game_state.platforms[i].set_width(0.8f);
+        g_game_state.platforms[i].set_height(1.0f);
+        g_game_state.platforms[i].set_entity_type(PLATFORM);
+        g_game_state.platforms[i].update(0.0f, NULL, NULL, 0);
     }
     
     // ––––– HEALTH BAR ––––– //
-    g_state.healthbar = new Entity[5];
+    g_game_state.healthbar = new Entity[5];
     std::vector<GLuint> health_texture_ids = {
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_full.png", NEAREST),
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_medium.png", NEAREST),
@@ -212,11 +219,11 @@ void initialise()
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/health_none.png", NEAREST)
     };
     for (int i = 0; i < 5; i++) {
-        g_state.healthbar[i] = Entity();
-        g_state.healthbar[i].set_texture_id(health_texture_ids[i]);
-        g_state.healthbar[i].set_position(glm::vec3(4.5f, 3.5f, 0.0f));
-        g_state.healthbar[i].set_scale(glm::vec3(0.5f, 0.25f, 0.0f));
-        g_state.healthbar[i].update(0.0f, NULL, NULL, 0);
+        g_game_state.healthbar[i] = Entity();
+        g_game_state.healthbar[i].set_texture_id(health_texture_ids[i]);
+        g_game_state.healthbar[i].set_position(glm::vec3(4.5f, 3.5f, 0.0f));
+        g_game_state.healthbar[i].set_scale(glm::vec3(0.5f, 0.25f, 0.0f));
+        g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0);
     }
     
 
@@ -233,7 +240,7 @@ void initialise()
 
     glm::vec3 acceleration = glm::vec3(0.0f,-4.905f, 0.0f);
 
-    g_state.player = new Entity(
+    g_game_state.player = new Entity(
         player_texture_id,         // texture id
         5.0f,                      // speed
         acceleration,              // acceleration
@@ -261,7 +268,7 @@ void initialise()
 
 
     // Jumping
-    g_state.player->set_jumping_power(3.0f);
+    g_game_state.player->set_jumping_power(3.0f);
 
     // ––––– GENERAL ––––– //
     glEnable(GL_BLEND);
@@ -271,7 +278,7 @@ void initialise()
 
 void process_input()
 {
-    g_state.player->set_movement(glm::vec3(0.0f));
+    g_game_state.player->set_movement(glm::vec3(0.0f));
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -292,10 +299,10 @@ void process_input()
 
                     case SDLK_SPACE:
                         // Jump
-                        if (g_state.player->get_collided_bottom())
+                        if (g_game_state.player->get_collided_bottom())
                         {
-                            g_state.player->jump();
-                            Mix_PlayChannel(NEXT_CHNL, g_jump_sfx, 0);
+                            g_game_state.player->jump();
+                            Mix_PlayChannel(NEXT_CHNL, g_game_state.jump_sfx, 0);
                         }
                         break;
 
@@ -305,7 +312,7 @@ void process_input()
                         break;
 
                     case SDLK_p:
-                        Mix_PlayMusic(g_music, -1);
+                        Mix_PlayMusic(g_game_state.bgm, -1);
 
                     default:
                         break;
@@ -320,16 +327,16 @@ void process_input()
 
     if (key_state[SDL_SCANCODE_LEFT])
     {
-        g_state.player->move_left();
+        g_game_state.player->move_left();
     }
     else if (key_state[SDL_SCANCODE_RIGHT])
     {
-        g_state.player->move_right();
+        g_game_state.player->move_right();
     }
 
-    if (glm::length(g_state.player->get_movement()) > 1.0f)
+    if (glm::length(g_game_state.player->get_movement()) > 1.0f)
     {
-        g_state.player->normalise_movement();
+        g_game_state.player->normalise_movement();
     }
 }
 
@@ -349,7 +356,7 @@ void update()
 
     while (delta_time >= FIXED_TIMESTEP)
     {
-        g_state.player->update(FIXED_TIMESTEP, NULL, g_state.platforms, PLATFORM_COUNT);
+        g_game_state.player->update(FIXED_TIMESTEP, NULL, g_game_state.platforms, PLATFORM_COUNT);
         delta_time -= FIXED_TIMESTEP;
     }
     
@@ -359,12 +366,12 @@ void update()
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    g_state.background->render(&g_program);
-    g_state.player->render(&g_program);
+    g_game_state.background->render(&g_program);
 
-    g_state.healthbar[healthState].render(&g_program);
-    for (int i = 0; i < PLATFORM_COUNT; i++) g_state.platforms[i].render(&g_program);
-
+    g_game_state.healthbar[healthState].render(&g_program);
+    g_game_state.map->render(&g_program);
+    for (int i = 0; i < PLATFORM_COUNT; i++) g_game_state.platforms[i].render(&g_program);
+    g_game_state.player->render(&g_program);
     SDL_GL_SwapWindow(g_display_window);
 }
 
@@ -372,9 +379,12 @@ void shutdown()
 {
     SDL_Quit();
 
-    delete [] g_state.platforms;
-    delete[] g_state.healthbar;
-    delete g_state.player;
+    delete [] g_game_state.platforms;
+    delete[] g_game_state.healthbar;
+    delete g_game_state.player;
+    delete    g_game_state.map;
+    Mix_FreeChunk(g_game_state.jump_sfx);
+    Mix_FreeMusic(g_game_state.bgm);
 }
 
 // ––––– GAME LOOP ––––– //
