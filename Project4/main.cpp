@@ -43,6 +43,7 @@ enum FilterType { NEAREST, LINEAR};
 struct GameState
 {
     Entity* player;
+    Entity* cat;
     Entity* platforms;
     Entity* background;
     Entity* healthbar;
@@ -106,7 +107,7 @@ int healthState = 0;
 
 unsigned int MAP_DATA[] =
 {
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 3,  // Row 0
+        2, 1, 1, 1, 1, 1, 1, 1, 1, 3,  // Row 0
         1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 1
         1, 0, 1, 1, 1, 1, 1, 0, 0, 1,  // Row 2
         1, 0, 1, 0, 0, 0, 1, 0, 0, 1,  // Row 3
@@ -195,25 +196,12 @@ void initialise()
     g_game_state.background = new Entity();
     g_game_state.background->set_texture_id(background_texture_id);
     g_game_state.background->set_scale(glm::vec3(1.0f, 1.0f, 0.0f));
+    //    g_game_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
     g_game_state.background->update(0.0f, NULL, NULL, 0, NULL);
 
     // ––––– MAP ––––– //
     GLuint map_texture_id = load_texture(MAP_TILESET_FILEPATH, NEAREST);
     g_game_state.map = new Map(MAP_WIDTH, MAP_HEIGHT, MAP_DATA, map_texture_id, 1.0f, 20, 9);
-    GLuint platform_texture_id = load_texture(PLATFORM_FILEPATH, LINEAR);
-
-    g_game_state.platforms = new Entity[PLATFORM_COUNT];
-
-    // Set the type of every platform entity to PLATFORM
-    for (int i = 0; i < PLATFORM_COUNT; i++)
-    {
-        g_game_state.platforms[i].set_texture_id(platform_texture_id);
-        g_game_state.platforms[i].set_position(glm::vec3(i - PLATFORM_COUNT / 2.0f, -3.0f, 0.0f));
-        g_game_state.platforms[i].set_width(0.8f);
-        g_game_state.platforms[i].set_height(1.0f);
-        g_game_state.platforms[i].set_entity_type(PLATFORM);
-        g_game_state.platforms[i].update(0.0f, NULL, NULL, 0, NULL);
-    }
     
     // ––––– HEALTH BAR ––––– //
     g_game_state.healthbar = new Entity[5];
@@ -234,43 +222,55 @@ void initialise()
     
 
     // ––––– PLAYER (GEORGE) ––––– //
-    GLuint player_texture_id = load_texture(SPRITESHEET_FILEPATH, NEAREST);
-
-    int player_walking_animation[4][4] =
-    {
-        { 1, 5, 9, 13 },  // for George to move to the left,
-        { 3, 7, 11, 15 }, // for George to move to the right,
-        { 2, 6, 10, 14 }, // for George to move upwards,
-        { 0, 4, 8, 12 }   // for George to move downwards
-    };
-
     glm::vec3 acceleration = glm::vec3(0.0f,-4.905f, 0.0f);
 
-    g_game_state.player = new Entity(
-        player_texture_id,         // texture id
-        5.0f,                      // speed
-        acceleration,              // acceleration
-        3.0f,                      // jumping power
-        player_walking_animation,  // animation index sets
-        0.0f,                      // animation time
-        4,                         // animation frame amount
-        0,                         // current animation index
-        4,                         // animation column amount
-        4,                         // animation row amount
-        1.0f,                      // width
-        1.0f,                       // height
-        PLAYER
-    );
+    
     
     std::vector<GLuint> cat_texture_ids = {
-        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Attack_2.png", NEAREST),   // IDLE spritesheet
-        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Idle.png", NEAREST),  // ATTACK spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Idle.png", NEAREST),   // IDLE spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Attack_2.png", NEAREST),  // ATTACK spritesheet
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Death.png", NEAREST), // DEATH spritesheet
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Run.png", NEAREST), // RUN spritesheet
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Take_Damage.png", NEAREST) // DAMAGE spritesheet
     };
     
+    for (int i = 0; i < 5; i++) {
+        g_game_state.healthbar[i] = Entity();
+        g_game_state.healthbar[i].set_texture_id(health_texture_ids[i]);
+        g_game_state.healthbar[i].set_position(glm::vec3(4.5f, 3.5f, 0.0f));
+        g_game_state.healthbar[i].set_scale(glm::vec3(0.5f, 0.25f, 0.0f));
+        g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0, NULL);
+    }
     
+
+
+    
+    std::vector<std::vector<int>> cat_animations = {
+           {0, 1, 2, 3, 4, 5},       // IDLE animation frames
+           {0, 1, 2, 3},  // ATTACK animation frames
+           {0, 1, 2, 3, 4, 5},       // DEATH animation frames
+           {0, 1, 2, 3, 4, 5, 6, 7}, //RUN animation frames
+           {0, 1, 2} //DAMAGE animation frames
+       };
+//    Entity(std::vector<GLuint> texture_ids, float speed, glm::vec3 acceleration, float jump_power, std::vector<std::vector<int>> animations, float animation_time, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, Animation animation);
+    
+    g_game_state.player =  new Entity(
+                                    cat_texture_ids,
+                                    5.0f,
+                                    acceleration,
+                                    3.0f,
+                                    cat_animations,
+                                    0.0f,
+                                    6,
+                                    0,
+                                    1,
+                                    6,
+                                    0.9f,
+                                    0.9f,
+                                    PLAYER,
+                                    DEFAULT
+                                );
+
 
 
     // Jumping
@@ -377,7 +377,6 @@ void render()
 
     g_game_state.healthbar[healthState].render(&g_program);
     g_game_state.map->render(&g_program);
-//    for (int i = 0; i < PLATFORM_COUNT; i++) g_game_state.platforms[i].render(&g_program);
     g_game_state.player->render(&g_program);
     SDL_GL_SwapWindow(g_display_window);
 }

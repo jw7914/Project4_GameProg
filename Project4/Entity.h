@@ -8,6 +8,7 @@
 enum EntityType { PLATFORM, PLAYER, ENEMY  };
 enum AIType     { WALKER, GUARD            };
 enum AIState    { WALKING, IDLE, ATTACKING };
+enum Animation { DEFAULT, ATTACK, DEATH, RUN, DAMAGE };
 
 
 enum AnimationDirection { LEFT, RIGHT, UP, DOWN };
@@ -39,12 +40,16 @@ private:
 
     // ————— TEXTURES ————— //
     GLuint    m_texture_id;
+    std::vector<GLuint> m_texture_ids;  // Vector of texture IDs for different animations
 
     // ————— ANIMATION ————— //
     int m_animation_cols;
     int m_animation_frames,
         m_animation_index,
         m_animation_rows;
+    std::vector<std::vector<int>> m_animations;  // Indices for each animation type
+
+    Animation m_current_animation;  // Current animation state
 
     int* m_animation_indices = nullptr;
     float m_animation_time = 0.0f;
@@ -63,14 +68,15 @@ public:
 
     // ————— METHODS ————— //
     Entity();
-    Entity(GLuint texture_id, float speed, glm::vec3 acceleration, float jump_power, int walking[4][4], float animation_time,
-        int animation_frames, int animation_index, int animation_cols,
-           int animation_rows, float width, float height, EntityType EntityType);
+    Entity(std::vector<GLuint> texture_ids, float speed, std::vector<std::vector<int>> animations,
+                  float animation_time, int animation_frames, int animation_index,
+           int animation_cols, int animation_rows, Animation animation);
+    Entity(std::vector<GLuint> texture_ids, float speed, glm::vec3 acceleration, float jump_power, std::vector<std::vector<int>> animations, float animation_time, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, Animation animation);
     Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType); // Simpler constructor
     Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState); // AI constructor
     ~Entity();
 
-    void draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint texture_id, int index);
+    void draw_sprite_from_texture_atlas(ShaderProgram* program);
     bool const check_collision(Entity* other) const;
 
     void const check_collision_y(Entity* collidable_entities, int collidable_entity_count);
@@ -149,6 +155,8 @@ public:
             }
         }
     }
+    
+    void set_animation_state(Animation new_animation);
 };
 
 #endif // ENTITY_H

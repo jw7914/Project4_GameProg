@@ -70,19 +70,17 @@ Entity::Entity()
 }
 
 // Parameterized constructor
-Entity::Entity(GLuint texture_id, float speed, glm::vec3 acceleration, float jump_power, int walking[4][4], float animation_time,
-    int animation_frames, int animation_index, int animation_cols,
-    int animation_rows, float width, float height, EntityType EntityType)
+Entity::Entity(std::vector<GLuint> texture_ids, float speed, glm::vec3 acceleration, float jump_power, std::vector<std::vector<int>> animations, float animation_time, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, Animation animation)
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
     m_speed(speed),m_acceleration(acceleration), m_jumping_power(jump_power), m_animation_cols(animation_cols),
     m_animation_frames(animation_frames), m_animation_index(animation_index),
     m_animation_rows(animation_rows), m_animation_indices(nullptr),
-    m_animation_time(animation_time), m_texture_id(texture_id), m_velocity(0.0f),
-    m_width(width), m_height(height), m_entity_type(EntityType)
+    m_animation_time(animation_time), m_texture_ids(texture_ids),  m_animations(animations), m_velocity(0.0f),
+    m_width(width), m_height(height), m_entity_type(EntityType), m_current_animation(animation)
 {
-    face_right();
-    set_walking(walking);
+    set_animation_state(m_current_animation);
 }
+
 
 // Simpler constructor for partial initialization
 Entity::Entity(GLuint texture_id, float speed,  float width, float height, EntityType EntityType)
@@ -95,6 +93,7 @@ Entity::Entity(GLuint texture_id, float speed,  float width, float height, Entit
     for (int i = 0; i < SECONDS_PER_FRAME; ++i)
         for (int j = 0; j < SECONDS_PER_FRAME; ++j) m_walking[i][j] = 0;
 }
+
 Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState): m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
 m_speed(speed), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
 m_animation_rows(0), m_animation_indices(nullptr), m_animation_time(0.0f),
@@ -107,43 +106,67 @@ for (int i = 0; i < SECONDS_PER_FRAME; ++i)
 
 Entity::~Entity() { }
 
-void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint texture_id, int index)
+void Entity::set_animation_state(Animation new_animation)
 {
-    // Step 1: Calculate the UV location of the indexed frame
-    float u_coord = (float)(index % m_animation_cols) / (float)m_animation_cols;
-    float v_coord = (float)(index / m_animation_cols) / (float)m_animation_rows;
+   m_current_animation = new_animation;
 
-    // Step 2: Calculate its UV size
-    float width = 1.0f / (float)m_animation_cols;
-    float height = 1.0f / (float)m_animation_rows;
-
-    // Step 3: Just as we have done before, match the texture coordinates to the vertices
-    float tex_coords[] =
-    {
-        u_coord, v_coord + height, u_coord + width, v_coord + height, u_coord + width, v_coord,
-        u_coord, v_coord + height, u_coord + width, v_coord, u_coord, v_coord
-    };
-
-    float vertices[] =
-    {
-        -0.5, -0.5, 0.5, -0.5,  0.5, 0.5,
-        -0.5, -0.5, 0.5,  0.5, -0.5, 0.5
-    };
-
-    // Step 4: And render
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-
-    glVertexAttribPointer(program->get_position_attribute(), 2, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(program->get_position_attribute());
-
-    glVertexAttribPointer(program->get_tex_coordinate_attribute(), 2, GL_FLOAT, false, 0, tex_coords);
-    glEnableVertexAttribArray(program->get_tex_coordinate_attribute());
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    glDisableVertexAttribArray(program->get_position_attribute());
-    glDisableVertexAttribArray(program->get_tex_coordinate_attribute());
+   // Update the texture and animation indices based on the current animation
+   m_animation_indices = m_animations[m_current_animation].data();
+   
+   // Update the number of rows to match the new texture spritesheet
+   m_animation_rows = (int) m_animations[m_current_animation].size();
+   
+   // Since the attacking animation spritesheet is twice as long as
+   // the idle animation, we scale accordingly
+   switch (m_current_animation)
+   {
+       case DEFAULT:
+           if (m_scale.x != m_scale.y) m_scale.x = m_scale.y;
+           break;
+       case ATTACK:
+           if (m_scale.x < m_scale.y * 2) m_scale.x *= 2;
+           
+       default:
+           break;
+   }
 }
+
+void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program)
+{
+   GLuint current_texture = m_texture_ids[m_current_animation];  // Get the right texture
+
+   float u_coord = (float) (m_animation_index % m_animation_cols) / (float) m_animation_cols;
+   float v_coord = (float) (m_animation_index / m_animation_cols) / (float) m_animation_rows;
+
+   float width = 1.0f / (float) m_animation_cols;
+   float height = 1.0f / (float) m_animation_rows;
+
+   float tex_coords[] =
+   {
+       u_coord, v_coord + height, u_coord + width, v_coord + height, u_coord + width, v_coord,
+       u_coord, v_coord + height, u_coord + width, v_coord, u_coord, v_coord
+   };
+
+   float vertices[] =
+   {
+       -0.5, -0.5, 0.5, -0.5,  0.5, 0.5,
+       -0.5, -0.5, 0.5,  0.5, -0.5, 0.5
+   };
+
+   glBindTexture(GL_TEXTURE_2D, current_texture);
+
+   glVertexAttribPointer(program->get_position_attribute(), 2, GL_FLOAT, false, 0, vertices);
+   glEnableVertexAttribArray(program->get_position_attribute());
+
+   glVertexAttribPointer(program->get_tex_coordinate_attribute(), 2, GL_FLOAT, false, 0, tex_coords);
+   glEnableVertexAttribArray(program->get_tex_coordinate_attribute());
+
+   glDrawArrays(GL_TRIANGLES, 0, 6);
+
+   glDisableVertexAttribArray(program->get_position_attribute());
+   glDisableVertexAttribArray(program->get_tex_coordinate_attribute());
+}
+
 
 bool const Entity::check_collision(Entity* other) const
 {
@@ -350,16 +373,15 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
 
 void Entity::render(ShaderProgram* program)
 {
-    program->set_model_matrix(m_model_matrix);
+   program->set_model_matrix(m_model_matrix);
 
-    if (m_animation_indices != NULL)
-    {
-        draw_sprite_from_texture_atlas(program, m_texture_id, m_animation_indices[m_animation_index]);
-        return;
-    }
-
-    float vertices[] = { -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5 };
-    float tex_coords[] = { 0.0,  1.0, 1.0,  1.0, 1.0, 0.0,  0.0,  1.0, 1.0, 0.0,  0.0, 0.0 };
+   if (m_animation_indices != nullptr)
+   {
+       draw_sprite_from_texture_atlas(program);
+       return;
+   }
+    float vertices[]   = { -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5 };
+    float tex_coords[] = {  0.0,  1.0, 1.0,  1.0, 1.0, 0.0,  0.0,  1.0, 1.0, 0.0,  0.0, 0.0 };
 
     glBindTexture(GL_TEXTURE_2D, m_texture_id);
 
