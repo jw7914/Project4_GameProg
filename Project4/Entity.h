@@ -46,7 +46,8 @@ private:
     int m_animation_cols;
     int m_animation_frames,
         m_animation_index,
-        m_animation_rows;
+        m_animation_rows,
+        m_rotate_state;
     std::vector<std::vector<int>> m_animations;  // Indices for each animation type
 
     Animation m_current_animation;  // Current animation state
@@ -64,7 +65,7 @@ private:
 
 public:
     // ————— STATIC VARIABLES ————— //
-    static constexpr int SECONDS_PER_FRAME = 4;
+    static constexpr int SECONDS_PER_FRAME = 6;
 
     // ————— METHODS ————— //
     Entity();
@@ -92,13 +93,14 @@ public:
 
     void normalise_movement() { m_movement = glm::normalize(m_movement); }
 
-    void face_left() { m_animation_indices = m_walking[LEFT]; }
+    void face_left()  { m_animation_indices = m_walking[LEFT];  }
     void face_right() { m_animation_indices = m_walking[RIGHT]; }
-    void face_up() { m_animation_indices = m_walking[UP]; }
-    void face_down() { m_animation_indices = m_walking[DOWN]; }
+    void face_up()    { m_animation_indices = m_walking[UP];    }
+    void face_down()  { m_animation_indices = m_walking[DOWN];  }
 
-    void move_left() { m_movement.x = -1.0f; face_left(); }
-    void move_right() { m_movement.x = 1.0f;  face_right(); }
+
+    void move_left() { m_movement.x = -1.0f; face_left(); set_animation_state(RUN); }
+    void move_right() { m_movement.x = 1.0f;  face_right(); set_animation_state(RUN); }
     void move_up() { m_movement.y = 1.0f;  face_up(); }
     void move_down() { m_movement.y = -1.0f; face_down(); }
 

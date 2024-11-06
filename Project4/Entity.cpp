@@ -115,6 +115,7 @@ void Entity::set_animation_state(Animation new_animation)
    
    // Update the number of rows to match the new texture spritesheet
    m_animation_rows = (int) m_animations[m_current_animation].size();
+    m_animation_frames = (int) m_animations[m_current_animation].size();
    
    // Since the attacking animation spritesheet is twice as long as
    // the idle animation, we scale accordingly
@@ -124,7 +125,14 @@ void Entity::set_animation_state(Animation new_animation)
            if (m_scale.x != m_scale.y) m_scale.x = m_scale.y;
            break;
        case ATTACK:
-           if (m_scale.x < m_scale.y * 2) m_scale.x *= 2;
+           if (m_scale.x < m_scale.y * 2.0) m_scale.x *= 2.0;
+           break;
+       case DEATH:
+           if (m_scale.x < m_scale.y * 1.5) m_scale.x *= 1.5;
+           break;
+       case RUN:
+           if (m_scale.x < m_scale.y * 1.5) m_scale.x *= 1.5;
+           break;
            
        default:
            break;
@@ -327,18 +335,24 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
     
     if (m_animation_indices != NULL)
     {
-        if (glm::length(m_movement) != 0)
+        m_animation_time += delta_time;
+        float frames_per_second = (float) 1 / SECONDS_PER_FRAME;
+        
+        if (m_animation_time >= frames_per_second)
         {
-            m_animation_time += delta_time;
-            float frames_per_second = (float) 1 / SECONDS_PER_FRAME;
+            m_animation_time = 0.0f;
+            m_animation_index++;
+            std::cout << m_animation_index << std::endl;
             
-            if (m_animation_time >= frames_per_second)
+            if (m_animation_index >= m_animation_frames)
             {
-                m_animation_time = 0.0f;
-                m_animation_index++;
-                
-                if (m_animation_index >= m_animation_frames)
-                {
+                if (m_current_animation == DEATH) {
+                    m_animation_index = m_animation_frames - 1; // Play once
+                }
+                else if (m_current_animation == DAMAGE) {
+                    m_animation_index = m_animation_frames - 2;
+                }
+                else {
                     m_animation_index = 0;
                 }
             }

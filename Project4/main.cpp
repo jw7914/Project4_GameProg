@@ -107,7 +107,7 @@ int healthState = 0;
 
 unsigned int MAP_DATA[] =
 {
-        2, 1, 1, 1, 1, 1, 1, 1, 1, 3,  // Row 0
+        3, 1, 1, 1, 1, 1, 1, 1, 1, 3,  // Row 0
         1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 1
         1, 0, 1, 1, 1, 1, 1, 0, 0, 1,  // Row 2
         1, 0, 1, 0, 0, 0, 1, 0, 0, 1,  // Row 3
@@ -228,20 +228,12 @@ void initialise()
     
     std::vector<GLuint> cat_texture_ids = {
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Idle.png", NEAREST),   // IDLE spritesheet
-        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Attack_2.png", NEAREST),  // ATTACK spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Attack_3.png", NEAREST),  // ATTACK spritesheet
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Death.png", NEAREST), // DEATH spritesheet
-        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Run.png", NEAREST), // RUN spritesheet
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Dodge.png", NEAREST), // RUN spritesheet
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Take_Damage.png", NEAREST) // DAMAGE spritesheet
     };
-    
-    for (int i = 0; i < 5; i++) {
-        g_game_state.healthbar[i] = Entity();
-        g_game_state.healthbar[i].set_texture_id(health_texture_ids[i]);
-        g_game_state.healthbar[i].set_position(glm::vec3(4.5f, 3.5f, 0.0f));
-        g_game_state.healthbar[i].set_scale(glm::vec3(0.5f, 0.25f, 0.0f));
-        g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0, NULL);
-    }
-    
+
 
 
     
@@ -249,7 +241,7 @@ void initialise()
            {0, 1, 2, 3, 4, 5},       // IDLE animation frames
            {0, 1, 2, 3},  // ATTACK animation frames
            {0, 1, 2, 3, 4, 5},       // DEATH animation frames
-           {0, 1, 2, 3, 4, 5, 6, 7}, //RUN animation frames
+           {2, 2, 3, 3, 5, 5, 6, 6}, //RUN animation frames
            {0, 1, 2} //DAMAGE animation frames
        };
 //    Entity(std::vector<GLuint> texture_ids, float speed, glm::vec3 acceleration, float jump_power, std::vector<std::vector<int>> animations, float animation_time, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, Animation animation);
@@ -261,16 +253,18 @@ void initialise()
                                     3.0f,
                                     cat_animations,
                                     0.0f,
-                                    6,
+                                    3,
                                     0,
                                     1,
-                                    6,
-                                    0.9f,
-                                    0.9f,
+                                    3,
+                                    0.5f,
+                                    0.5f,
                                     PLAYER,
-                                    DEFAULT
+                                    ATTACK
                                 );
-
+    
+    g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
+                                g_game_state.map);
 
 
     // Jumping
@@ -319,6 +313,7 @@ void process_input()
 
                     case SDLK_p:
                         Mix_PlayMusic(g_game_state.bgm, -1);
+                        break;
 
                     default:
                         break;
@@ -339,6 +334,19 @@ void process_input()
     {
         g_game_state.player->move_right();
     }
+    else if (key_state[SDL_SCANCODE_A]){
+        g_game_state.player->set_animation_state(ATTACK);
+    }
+    else if (key_state[SDL_SCANCODE_D]) {
+        g_game_state.player->set_animation_state(DEATH);
+    }
+    else if(key_state[SDL_SCANCODE_F]) {
+        g_game_state.player->set_animation_state(DAMAGE);
+    }
+    else {
+        g_game_state.player->set_animation_state(DEFAULT);
+    }
+
 
     if (glm::length(g_game_state.player->get_movement()) > 1.0f)
     {
