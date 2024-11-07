@@ -107,7 +107,7 @@ int healthState = 0;
 
 unsigned int MAP_DATA[] =
 {
-        3, 1, 1, 1, 1, 1, 1, 1, 1, 3,  // Row 0
+        3, 1, 1, 1, 1, 0, 1, 1, 1, 3,  // Row 0
         1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 1
         1, 0, 1, 1, 1, 1, 1, 0, 0, 1,  // Row 2
         1, 0, 1, 0, 0, 0, 1, 0, 0, 1,  // Row 3
@@ -195,8 +195,7 @@ void initialise()
     GLuint background_texture_id = load_texture(BACKGROUND_IMG_FILEPATH, LINEAR);
     g_game_state.background = new Entity();
     g_game_state.background->set_texture_id(background_texture_id);
-    g_game_state.background->set_scale(glm::vec3(1.0f, 1.0f, 0.0f));
-    //    g_game_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
+    g_game_state.background->set_scale(glm::vec3(10.0f, 8.0f, 0.0f));
     g_game_state.background->update(0.0f, NULL, NULL, 0, NULL);
 
     // ––––– MAP ––––– //
@@ -257,12 +256,12 @@ void initialise()
                                     0,
                                     1,
                                     3,
-                                    0.5f,
-                                    0.5f,
+                                    0.75f,
+                                    1.0f,
                                     PLAYER,
                                     ATTACK
                                 );
-    
+    g_game_state.player->set_position(glm::vec3(5.0f, -3.0f, 0.0f));
     g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
                                 g_game_state.map);
 
@@ -376,15 +375,24 @@ void update()
     }
     
     g_accumulator = delta_time;
+    g_view_matrix = glm::mat4(1.0f);
+    
+    // Camera Follows the player
+    g_game_state.background->set_position(g_game_state.player->get_position());
+    g_game_state.healthbar->set_position(glm::vec3(g_game_state.player->get_position().x + 4.5f, g_game_state.player->get_position().y + 3.5f, 0.0f));
+    g_game_state.background->update(0.0f, NULL, NULL, 0, NULL);
+    g_game_state.healthbar->update(0.0f, NULL, NULL, 0, NULL);
+
+    g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_game_state.player->get_position().x, -g_game_state.player->get_position().y, 0.0f));
 }
 
 void render()
 {
+    g_program.set_view_matrix(g_view_matrix);
     glClear(GL_COLOR_BUFFER_BIT);
     g_game_state.background->render(&g_program);
-
-    g_game_state.healthbar[healthState].render(&g_program);
     g_game_state.map->render(&g_program);
+    g_game_state.healthbar[healthState].render(&g_program);
     g_game_state.player->render(&g_program);
     SDL_GL_SwapWindow(g_display_window);
 }

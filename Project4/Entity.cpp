@@ -342,7 +342,6 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
         {
             m_animation_time = 0.0f;
             m_animation_index++;
-            std::cout << m_animation_index << std::endl;
             
             if (m_animation_index >= m_animation_frames)
             {

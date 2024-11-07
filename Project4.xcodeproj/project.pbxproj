@@ -55,6 +55,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BF0C7EA42CDBEBE0007FB262 /* tilemap-characters_packed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "tilemap-characters_packed.png"; sourceTree = "<group>"; };
 		BF3541D22C8B90B100F7B096 /* Project4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Project4; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3541E22C8B918300F7B096 /* glm */ = {isa = PBXFileReference; lastKnownFileType = folder; path = glm; sourceTree = "<group>"; };
 		BF3541E32C8B918300F7B096 /* ShaderProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShaderProgram.h; sourceTree = "<group>"; };
@@ -165,6 +166,7 @@
 		BF6DF7BB2CC2F22400772AA0 /* assets */ = {
 			isa = PBXGroup;
 			children = (
+				BF0C7EA42CDBEBE0007FB262 /* tilemap-characters_packed.png */,
 				BF4367B02CD8908000E9D7CF /* new_tilemap.png */,
 				BF43678C2CD834D200E9D7CF /* retro-jump-3-236683.wav */,
 				BF43677C2CD8240E00E9D7CF /* windrise-background-4k.png */,
