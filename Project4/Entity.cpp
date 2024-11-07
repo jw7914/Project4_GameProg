@@ -108,36 +108,59 @@ Entity::~Entity() { }
 
 void Entity::set_animation_state(Animation new_animation)
 {
+   // Check if we are leaving the ATTACK animation
+   if (m_prev_animation == ATTACK && new_animation != ATTACK) {
+       // Reset the position adjustment made during ATTACK
+       m_position.x -= 0.5f;
+       m_width /= 1.5f;
+       m_scale.x = m_scale.y;
+   }
+
+   // Update the current animation state
    m_current_animation = new_animation;
 
    // Update the texture and animation indices based on the current animation
    m_animation_indices = m_animations[m_current_animation].data();
    
    // Update the number of rows to match the new texture spritesheet
-   m_animation_rows = (int) m_animations[m_current_animation].size();
-    m_animation_frames = (int) m_animations[m_current_animation].size();
+   m_animation_rows = static_cast<int>(m_animations[m_current_animation].size());
+   m_animation_frames = static_cast<int>(m_animations[m_current_animation].size());
    
-   // Since the attacking animation spritesheet is twice as long as
-   // the idle animation, we scale accordingly
-   switch (m_current_animation)
-   {
+   // Scale and adjust position based on the new animation state
+   switch (m_current_animation) {
        case DEFAULT:
-           if (m_scale.x != m_scale.y) m_scale.x = m_scale.y;
+           if (m_scale.x != m_scale.y) {
+               m_scale.x = m_scale.y;
+           }
            break;
+
        case ATTACK:
-           if (m_scale.x < m_scale.y * 2.0) m_scale.x *= 2.0;
+           if (m_scale.x < m_scale.y * 2.0) {
+               m_scale.x *= 2.0;
+               m_position.x += 0.5f;
+               m_width *= 1.5f;
+           }
            break;
+
        case DEATH:
-           if (m_scale.x < m_scale.y * 1.5) m_scale.x *= 1.5;
+           if (m_scale.x < m_scale.y * 1.5) {
+               m_scale.x *= 1.5;
+           }
            break;
+
        case RUN:
-           if (m_scale.x < m_scale.y * 1.5) m_scale.x *= 1.5;
+           if (m_scale.x < m_scale.y * 1.75) {
+               m_scale.x *= 1.75;
+           }
            break;
-           
+
        default:
            break;
    }
+
+   m_prev_animation = m_current_animation;
 }
+
 
 void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program)
 {

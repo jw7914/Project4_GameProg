@@ -51,6 +51,7 @@ private:
     std::vector<std::vector<int>> m_animations;  // Indices for each animation type
 
     Animation m_current_animation;  // Current animation state
+    Animation m_prev_animation = DEFAULT;
 
     int* m_animation_indices = nullptr;
     float m_animation_time = 0.0f;
@@ -123,6 +124,7 @@ public:
     bool      const get_collided_left() const { return m_collided_left; }
     float get_width() const { return m_width; }
     float get_height() const { return m_height; }
+    Animation get_curr_animation() const { return m_current_animation; }
 
     void activate()   { m_is_active = true;  };
     void deactivate() { m_is_active = false; };

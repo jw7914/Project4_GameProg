@@ -15,7 +15,7 @@
 #define GL_GLEXT_PROTOTYPES 1
 #define FIXED_TIMESTEP 0.0166666f
 #define PLATFORM_COUNT 10
-const int MAP_WIDTH = 10;
+const int MAP_WIDTH = 16;
 const int MAP_HEIGHT = 10;
 
 
@@ -107,17 +107,18 @@ int healthState = 0;
 
 unsigned int MAP_DATA[] =
 {
-        3, 1, 1, 1, 1, 0, 1, 1, 1, 3,  // Row 0
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 1
-        1, 0, 1, 1, 1, 1, 1, 0, 0, 1,  // Row 2
-        1, 0, 1, 0, 0, 0, 1, 0, 0, 1,  // Row 3
-        1, 0, 1, 0, 1, 1, 1, 0, 0, 1,  // Row 4
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 5
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // Row 6
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1,  // Row 7
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // Row 8
-        4, 1, 1, 1, 1, 1, 1, 1, 1, 2   // Row 9
+        10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,  // Row 0
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 1
+        10, 0, 0, 0, 0, 0, 156, 156, 156, 156, 0, 0, 0, 0, 0, 10,  // Row 2
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 3
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 4
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 16, 16, 16, 0, 10,  // Row 5
+        10, 0, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 6
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 7
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 8
+        10, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20  // Row 9
 };
+
 
 // ––––– GENERAL FUNCTIONS ––––– //
 GLuint load_texture(const char* filepath, FilterType filterType)
@@ -259,7 +260,7 @@ void initialise()
                                     0.75f,
                                     1.0f,
                                     PLAYER,
-                                    ATTACK
+                                    DEFAULT
                                 );
     g_game_state.player->set_position(glm::vec3(5.0f, -3.0f, 0.0f));
     g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
@@ -376,14 +377,22 @@ void update()
     
     g_accumulator = delta_time;
     g_view_matrix = glm::mat4(1.0f);
-    
+    glm::vec3 player_pos = g_game_state.player->get_position();
     // Camera Follows the player
-    g_game_state.background->set_position(g_game_state.player->get_position());
-    g_game_state.healthbar->set_position(glm::vec3(g_game_state.player->get_position().x + 4.5f, g_game_state.player->get_position().y + 3.5f, 0.0f));
+
+    if (g_game_state.player->get_curr_animation() == ATTACK) {
+        g_game_state.background->set_position(glm::vec3(player_pos.x - 0.5f, player_pos.y + 2.25f, 0.0f));
+        g_game_state.healthbar->set_position(glm::vec3(player_pos.x + 4.0f, player_pos.y + 5.5f, 0.0f));
+        g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-player_pos.x + 0.5f, -player_pos.y - 2.25f, 0.0f));
+    }
+    else {
+        g_game_state.background->set_position(glm::vec3(player_pos.x, player_pos.y + 2.25f, 0.0f));
+        g_game_state.healthbar->set_position(glm::vec3(player_pos.x + 4.5f, player_pos.y + 5.5f, 0.0f));
+        g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-player_pos.x, -player_pos.y - 2.25f, 0.0f));
+    }
+    
     g_game_state.background->update(0.0f, NULL, NULL, 0, NULL);
     g_game_state.healthbar->update(0.0f, NULL, NULL, 0, NULL);
-
-    g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_game_state.player->get_position().x, -g_game_state.player->get_position().y, 0.0f));
 }
 
 void render()
