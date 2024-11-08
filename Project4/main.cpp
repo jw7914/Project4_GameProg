@@ -45,6 +45,7 @@ struct GameState
     Entity* player;
     Entity* cat;
     Entity* platforms;
+    Entity* enemies;
     Entity* background;
     Entity* healthbar;
     
@@ -71,10 +72,10 @@ constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
            F_SHADER_PATH[] = "shaders/fragment_textured.glsl";
 
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
-constexpr char SPRITESHEET_FILEPATH[] = "assets/george_0.png";
-constexpr char PLATFORM_FILEPATH[]    = "assets/platformPack_tile027.png";
 constexpr char BACKGROUND_IMG_FILEPATH[]    = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/windrise-background-4k.png";
 constexpr char MAP_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/new_tilemap.png";
+
+constexpr char ENEMY_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/tilemap-characters_packed.png";
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -91,6 +92,7 @@ constexpr int PLAY_ONCE = 0,    // play once, loop never
           NEXT_CHNL = -1,   // next available channel
           ALL_SFX_CHNL = -1;
 
+constexpr int NUM_ENEMY = 3;
 // ––––– GLOBAL VARIABLES ––––– //
 GameState g_game_state;
 
@@ -220,12 +222,9 @@ void initialise()
         g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0, NULL);
     }
     
-
-    // ––––– PLAYER (GEORGE) ––––– //
+    // ––––– PLAYER (CAT) ––––– //
     glm::vec3 acceleration = glm::vec3(0.0f,-4.905f, 0.0f);
 
-    
-    
     std::vector<GLuint> cat_texture_ids = {
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Idle.png", NEAREST),   // IDLE spritesheet
         load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/Meow-Knight_Attack_3.png", NEAREST),  // ATTACK spritesheet
@@ -262,13 +261,32 @@ void initialise()
                                     PLAYER,
                                     DEFAULT
                                 );
-    g_game_state.player->set_position(glm::vec3(5.0f, -3.0f, 0.0f));
+    g_game_state.player->set_position(glm::vec3(7.0f, -8.0f, 0.0f));
     g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
                                 g_game_state.map);
 
 
     // Jumping
     g_game_state.player->set_jumping_power(5.0f);
+    
+    
+    // ––––– Enemies ––––– //
+    g_game_state.enemies = new Entity[NUM_ENEMY];
+    std::vector<std::vector<int>> enemy_animations = {
+        {0}
+    };
+
+    
+//    for (int i = 0; i < NUM_ENEMY; i++)
+//    {
+//        g_game_state.enemies[i] =  Entity(enemy_texture_id, 1.0f, 1.0f, 1.0f, ENEMY, GUARD, IDLE);
+//    }
+
+    
+    //    g_game_state.enemies[0]->set_position(glm::vec3(3.0f, -5.0f, 0.0f));
+    //    g_game_state.enemies[1]->set_position(glm::vec3(11.0f, -4.0f, 0.0f));
+    //    g_game_state.enemies[2]->set_position(glm::vec3(7.0f, -1.0f, 0.0f));
+
 
     // ––––– GENERAL ––––– //
     glEnable(GL_BLEND);
@@ -281,6 +299,9 @@ void process_input()
     g_game_state.player->set_movement(glm::vec3(0.0f));
 
     SDL_Event event;
+    g_game_state.player->set_animation_state(DEFAULT);
+    bool attacking;
+    
     while (SDL_PollEvent(&event))
     {
         switch (event.type) {
@@ -314,7 +335,7 @@ void process_input()
                     case SDLK_p:
                         Mix_PlayMusic(g_game_state.bgm, -1);
                         break;
-
+                    
                     default:
                         break;
                 }
@@ -326,26 +347,27 @@ void process_input()
 
     const Uint8 *key_state = SDL_GetKeyboardState(NULL);
 
-    if (key_state[SDL_SCANCODE_LEFT])
-    {
-        g_game_state.player->move_left();
-    }
-    else if (key_state[SDL_SCANCODE_RIGHT])
-    {
-        g_game_state.player->move_right();
-    }
-    else if (key_state[SDL_SCANCODE_A]){
+    
+    if (key_state[SDL_SCANCODE_A]) {
         g_game_state.player->set_animation_state(ATTACK);
-    }
-    else if (key_state[SDL_SCANCODE_D]) {
-        g_game_state.player->set_animation_state(DEATH);
-    }
-    else if(key_state[SDL_SCANCODE_F]) {
-        g_game_state.player->set_animation_state(DAMAGE);
+        attacking = true;
     }
     else {
-        g_game_state.player->set_animation_state(DEFAULT);
+        attacking = false;
     }
+ 
+    if (!attacking){
+        if (key_state[SDL_SCANCODE_LEFT])
+        {
+            g_game_state.player->move_left();
+        }
+        else if (key_state[SDL_SCANCODE_RIGHT])
+        {
+            g_game_state.player->move_right();
+        }
+    }
+    
+    
 
 
     if (glm::length(g_game_state.player->get_movement()) > 1.0f)
@@ -378,6 +400,9 @@ void update()
     g_accumulator = delta_time;
     g_view_matrix = glm::mat4(1.0f);
     glm::vec3 player_pos = g_game_state.player->get_position();
+//    LOG("Player x:" << player_pos.x);
+//    LOG("Player y:" << player_pos.y);
+//    
     // Camera Follows the player
 
     if (g_game_state.player->get_curr_animation() == ATTACK) {

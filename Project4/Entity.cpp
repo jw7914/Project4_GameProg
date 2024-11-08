@@ -38,11 +38,11 @@ void Entity::ai_walk()
 void Entity::ai_guard(Entity *player)
 {
     switch (m_ai_state) {
-        case IDLE:
+        case WALKING:
             if (glm::distance(m_position, player->get_position()) < 3.0f) m_ai_state = WALKING;
             break;
 
-        case WALKING:
+        case JUMPING:
             if (m_position.x > player->get_position().x) {
                 m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
             } else {
