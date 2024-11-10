@@ -358,7 +358,7 @@ void initialise()
     
     g_game_state.enemies[0] =  Entity(enemy_texture_ids[0], 0.0f, 1.0f, 1.0f, ENEMY, IDLE);
     g_game_state.enemies[1] =  Entity(enemy_texture_ids[1], 0.0f, 1.0f, 1.0f, ENEMY, JUMPING);
-    g_game_state.enemies[2] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, PLAYER, WALKING);
+    g_game_state.enemies[2] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, WALKING);
     g_game_state.enemies[3] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, WALKING);
     for (int i = 0; i < NUM_ENEMY; i++)
     {
@@ -367,6 +367,7 @@ void initialise()
         g_game_state.enemies[i].set_acceleration(glm::vec3(0.0f, -9.81f, 0.0f));
         g_game_state.enemies[i].activate();
         g_game_state.enemies[i].set_entity_type(ENEMY);
+        g_game_state.enemies[i].set_speed(1.0f);
     }
     
     g_game_state.enemies[0].set_ai_type(IDLE);
@@ -497,7 +498,7 @@ void update()
         
         for (int i = 0; i < NUM_ENEMY; i++){
             g_game_state.enemies[i].update(FIXED_TIMESTEP,
-                                           &g_game_state.enemies[i],
+                                           g_game_state.player,
                                            NULL, 0,
                                            g_game_state.map);
             

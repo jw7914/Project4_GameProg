@@ -15,11 +15,34 @@
 
 void Entity::ai_activate(Entity *player)
 {
-    std::cout << player->get_ai_type() << std::endl;
-    if(player->get_ai_type() == IDLE) {
-        player->set_scale(glm::vec3(0.1f, 0.1f, 0.0f));
+
+    if (m_ai_type == IDLE){
+        srand(time(NULL));
+
+        int random_number = rand() % 2 + 1;
+        m_scale = glm::vec3(random_number, random_number, 0.0f);
+        
+        if (m_collided_bottom) {
+            set_jumping_power(10.0f);
+            jump();
+        }
+    }
+    if (m_ai_type == JUMPING) {
+        if (m_collided_bottom) {
+            set_jumping_power(10.0f);
+            jump();
+        }
+    }
+    
+    if (m_ai_type ==  WALKING) {
+        if (m_position.x > player->get_position().x) {
+            m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
+        } else {
+            m_movement = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
     }
 }
+
 
 // Default constructor
 Entity::Entity()
@@ -322,9 +345,7 @@ int Entity::update(float delta_time, Entity *player, Entity *collidable_entities
     m_collided_bottom = false;
     m_collided_left   = false;
     m_collided_right  = false;
-    
-    if (m_entity_type == ENEMY) ai_activate(player);
-    
+        
     if (m_animation_indices != NULL)
     {
         m_animation_time += delta_time;
@@ -375,6 +396,7 @@ int Entity::update(float delta_time, Entity *player, Entity *collidable_entities
         return 1;
     }
 
+    if (m_entity_type == ENEMY) ai_activate(player);
     
     if (m_is_jumping)
     {
