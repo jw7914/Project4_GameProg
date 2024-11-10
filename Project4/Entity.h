@@ -6,8 +6,7 @@
 #include "ShaderProgram.h"
 
 enum EntityType { PLATFORM, PLAYER, ENEMY  };
-enum AIType     { WALKER, GUARD            };
-enum AIState    { WALKING, JUMPING, ATTACKING };
+enum AIType   { IDLE, JUMPING, WALKING };
 enum Animation { DEFAULT, ATTACK, DEATH, RUN, DAMAGE };
 
 
@@ -23,7 +22,6 @@ private:
 
     EntityType m_entity_type;
     AIType     m_ai_type;
-    AIState    m_ai_state;
     // ————— TRANSFORMATIONS ————— //
     glm::vec3 m_movement;
     glm::vec3 m_position;
@@ -75,8 +73,8 @@ public:
            int animation_cols, int animation_rows, Animation animation);
     Entity(std::vector<GLuint> texture_ids, float speed, glm::vec3 acceleration, float jump_power, std::vector<std::vector<int>> animations, float animation_time, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, Animation animation);
     Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType); // Simpler constructor
-    Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState); // AI constructor
-    Entity(GLuint texture_id, float speed, glm::vec3 acceleration, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, AIType AIType, AIState AIState);
+    Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType); // AI constructor
+    Entity(GLuint texture_id, float speed, glm::vec3 acceleration, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, AIType AIType);
     ~Entity();
 
     void draw_sprite_from_texture_atlas(ShaderProgram* program);
@@ -111,7 +109,6 @@ public:
     // ————— GETTERS ————— //
     EntityType const get_entity_type()    const { return m_entity_type;   };
     AIType     const get_ai_type()        const { return m_ai_type;       };
-    AIState    const get_ai_state()       const { return m_ai_state;      };
     glm::vec3 const get_position()     const { return m_position; }
     glm::vec3 const get_velocity()     const { return m_velocity; }
     glm::vec3 const get_acceleration() const { return m_acceleration; }
@@ -134,7 +131,6 @@ public:
     // ————— SETTERS ————— //
     void const set_entity_type(EntityType new_entity_type)  { m_entity_type = new_entity_type;};
     void const set_ai_type(AIType new_ai_type){ m_ai_type = new_ai_type;};
-    void const set_ai_state(AIState new_state){ m_ai_state = new_state;};
     void const set_position(glm::vec3 new_position) { m_position = new_position; }
     void const set_velocity(glm::vec3 new_velocity) { m_velocity = new_velocity; }
     void const set_acceleration(glm::vec3 new_acceleration) { m_acceleration = new_acceleration; }

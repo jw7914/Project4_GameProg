@@ -98,7 +98,7 @@ constexpr int PLAY_ONCE = 0,    // play once, loop never
           NEXT_CHNL = -1,   // next available channel
           ALL_SFX_CHNL = -1;
 
-constexpr int NUM_ENEMY = 3;
+constexpr int NUM_ENEMY = 4;
 
 
 // ––––– GLOBAL VARIABLES ––––– //
@@ -121,11 +121,11 @@ unsigned int MAP_DATA[] =
 {
         10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,  // Row 0
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 1
-        10, 0, 0, 0, 0, 0, 156, 156, 156, 156, 0, 0, 0, 0, 0, 10,  // Row 2
-        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 3
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 2
+        10, 0, 0, 0, 0, 0, 156, 156, 156, 156, 0, 0, 0, 0, 0, 10,  // Row 3
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 4
         10, 0, 6, 6, 6, 6, 0, 0, 0, 0, 16, 16, 16, 16, 0, 10,  // Row 5
-        10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 10,  // Row 6
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 6
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 7
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 8
         10, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20  // Row 9
@@ -344,7 +344,7 @@ void initialise()
 
 
     // Jumping
-    g_game_state.player->set_jumping_power(5.0f);
+    g_game_state.player->set_jumping_power(6.0f);
     
     
     // ––––– Enemies ––––– //
@@ -356,20 +356,29 @@ void initialise()
     };
     
     
-    g_game_state.enemies[0] =  Entity(enemy_texture_ids[0], 0.0f, 1.0f, 1.0f, ENEMY, GUARD, ATTACKING);
-    g_game_state.enemies[1] =  Entity(enemy_texture_ids[1], 0.0f, 1.0f, 1.0f, ENEMY, GUARD, ATTACKING);
-    g_game_state.enemies[2] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, GUARD, ATTACKING);
+    g_game_state.enemies[0] =  Entity(enemy_texture_ids[0], 0.0f, 1.0f, 1.0f, ENEMY, IDLE);
+    g_game_state.enemies[1] =  Entity(enemy_texture_ids[1], 0.0f, 1.0f, 1.0f, ENEMY, JUMPING);
+    g_game_state.enemies[2] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, PLAYER, WALKING);
+    g_game_state.enemies[3] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, WALKING);
     for (int i = 0; i < NUM_ENEMY; i++)
     {
         g_game_state.enemies[i].set_scale(glm::vec3(1.0f,1.0f,0.0f));
         g_game_state.enemies[i].set_movement(glm::vec3(0.0f));
         g_game_state.enemies[i].set_acceleration(glm::vec3(0.0f, -9.81f, 0.0f));
         g_game_state.enemies[i].activate();
+        g_game_state.enemies[i].set_entity_type(ENEMY);
     }
+    
+    g_game_state.enemies[0].set_ai_type(IDLE);
+    g_game_state.enemies[1].set_ai_type(JUMPING);
+    g_game_state.enemies[2].set_ai_type(WALKING);
+    g_game_state.enemies[3].set_ai_type(WALKING);
 
     g_game_state.enemies[0].set_position(glm::vec3(3.0f, -4.0f, 0.0f));
     g_game_state.enemies[1].set_position(glm::vec3(11.0f, -4.0f, 0.0f));
     g_game_state.enemies[2].set_position(glm::vec3(7.0f, -2.0f, 0.0f));
+    g_game_state.enemies[3].set_position(glm::vec3(7.0f, -2.0f, 0.0f));
+
     
    
 
@@ -487,10 +496,12 @@ void update()
         int playerCollsion = g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, NUM_ENEMY, g_game_state.map);
         
         for (int i = 0; i < NUM_ENEMY; i++){
-            g_game_state.enemies[i].update(0.0f,
-                                           g_game_state.player,
+            g_game_state.enemies[i].update(FIXED_TIMESTEP,
+                                           &g_game_state.enemies[i],
                                            NULL, 0,
                                            g_game_state.map);
+            
+//            LOG("ENEMEY " << i << ": " <<g_game_state.enemies[i].get_entity_type());
             if (g_game_state.enemies[i].isActive()) {
                 active++;
             }
@@ -505,7 +516,7 @@ void update()
             }
         }
         NUM_ACTIVE_ENEMY = active;
-        if (NUM_ACTIVE_ENEMY == 0) {
+        if (NUM_ACTIVE_ENEMY == 1) {
             isRunning = false;
         }
 
@@ -519,17 +530,22 @@ void update()
     // Camera Follows the player
     if (g_game_state.player->get_curr_animation() == ATTACK) {
         g_game_state.background->set_position(glm::vec3(player_pos.x - 0.5f, player_pos.y + 2.25f, 0.0f));
-        g_game_state.healthbar->set_position(glm::vec3(player_pos.x + 4.0f, player_pos.y + 5.5f, 0.0f));
+        for (int i = 0; i < 5; i++){
+            g_game_state.healthbar[i].set_position(glm::vec3(player_pos.x + 4.0f, player_pos.y + 5.5f, 0.0f));
+            g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0, NULL);
+        }
         g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-player_pos.x + 0.5f, -player_pos.y - 2.25f, 0.0f));
     }
     else {
         g_game_state.background->set_position(glm::vec3(player_pos.x, player_pos.y + 2.25f, 0.0f));
-        g_game_state.healthbar->set_position(glm::vec3(player_pos.x + 4.5f, player_pos.y + 5.5f, 0.0f));
+        for (int i = 0; i < 5; i++){
+            g_game_state.healthbar[i].set_position(glm::vec3(player_pos.x + 4.5f, player_pos.y + 5.5f, 0.0f));
+            g_game_state.healthbar[i].update(0.0f, NULL, NULL, 0, NULL);
+        }
         g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-player_pos.x, -player_pos.y - 2.25f, 0.0f));
     }
     
     g_game_state.background->update(0.0f, NULL, NULL, 0, NULL);
-    g_game_state.healthbar->update(0.0f, NULL, NULL, 0, NULL);
 }
 
 void render()
@@ -547,7 +563,7 @@ void render()
     
     g_font_texture_id = load_texture(FONTSHEET_FILEPATH, NEAREST);
      
-    if (NUM_ACTIVE_ENEMY == 0){
+    if (NUM_ACTIVE_ENEMY == 1){
         draw_text(&g_program, g_font_texture_id, "PLAYER WIN", 0.5f, 0.05f,
               glm::vec3(g_game_state.player->get_position().x - 3.0f, g_game_state.player->get_position().y + 3.0f, 0.0f));
     }

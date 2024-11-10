@@ -15,42 +15,12 @@
 
 void Entity::ai_activate(Entity *player)
 {
-    switch (m_ai_type)
-    {
-        case WALKER:
-            ai_walk();
-            break;
-
-        case GUARD:
-            ai_guard(player);
-            break;
-
-        default:
-            break;
+    std::cout << player->get_ai_type() << std::endl;
+    if(player->get_ai_type() == IDLE) {
+        player->set_scale(glm::vec3(0.1f, 0.1f, 0.0f));
     }
 }
 
-void Entity::ai_walk()
-{
-    m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
-}
-
-void Entity::ai_guard(Entity *player)
-{
-    switch (m_ai_state) {
-        case WALKING:
-            break;
-
-        case JUMPING:
-            break;
-
-        case ATTACKING:
-            break;
-
-        default:
-            break;
-    }
-}
 // Default constructor
 Entity::Entity()
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
@@ -88,10 +58,10 @@ Entity::Entity(GLuint texture_id, float speed, float width, float height, Entity
         for (int j = 0; j < SECONDS_PER_FRAME; ++j) m_walking[i][j] = 0;
 }
 
-Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState): m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
+Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType): m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
 m_speed(speed), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
 m_animation_rows(0), m_animation_indices(nullptr), m_animation_time(0.0f),
-m_texture_id(texture_id), m_velocity(0.0f), m_acceleration(0.0f), m_width(width), m_height(height),m_entity_type(EntityType), m_ai_type(AIType), m_ai_state(AIState)
+m_texture_id(texture_id), m_velocity(0.0f), m_acceleration(0.0f), m_width(width), m_height(height), m_entity_type(EntityType), m_ai_type(AIType)
 {
 // Initialize m_walking with zeros or any default value
 for (int i = 0; i < SECONDS_PER_FRAME; ++i)
@@ -346,7 +316,7 @@ void const Entity::check_collision_x(Map *map)
 }
 int Entity::update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map)
 {
-    if (!m_is_active) return 10;
+    if (!m_is_active) return 0;
     
     m_collided_top    = false;
     m_collided_bottom = false;
@@ -415,7 +385,6 @@ int Entity::update(float delta_time, Entity *player, Entity *collidable_entities
     m_model_matrix = glm::mat4(1.0f);
     m_model_matrix = glm::translate(m_model_matrix, m_position);
     m_model_matrix = glm::scale(m_model_matrix, m_scale);
-    
     return 0;
 }
 
