@@ -370,6 +370,9 @@ void initialise()
         g_game_state.enemies[i].set_speed(1.0f);
     }
     
+    g_game_state.enemies[3].set_speed(0.0f);
+
+    
     g_game_state.enemies[0].set_ai_type(PATROL);
     g_game_state.enemies[1].set_ai_type(JUMPING);
     g_game_state.enemies[2].set_ai_type(WALKING);
@@ -494,7 +497,7 @@ void update()
     while (delta_time >= FIXED_TIMESTEP)
     {
         int active = 0;
-        int playerCollsion = g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, NUM_ENEMY, g_game_state.map);
+        int playerCollsion = g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, NUM_ENEMY - 1, g_game_state.map);
         
         for (int i = 0; i < NUM_ENEMY; i++){
             g_game_state.enemies[i].update(FIXED_TIMESTEP,
@@ -556,7 +559,7 @@ void render()
     g_game_state.background->render(&g_program);
     g_game_state.map->render(&g_program);
     g_game_state.healthbar[healthState].render(&g_program);
-    for (int i = 0; i < NUM_ENEMY; i++) {
+    for (int i = 0; i < NUM_ENEMY - 1; i++) {
         if (g_game_state.enemies[i].isActive()){
             g_game_state.enemies[i].render(&g_program);
         }
