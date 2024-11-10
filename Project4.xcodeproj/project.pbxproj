@@ -17,6 +17,7 @@
 		BF4367762CD8037800E9D7CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4367752CD8037800E9D7CF /* main.cpp */; };
 		BF4367AD2CD8716300E9D7CF /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4367AC2CD8716300E9D7CF /* Map.cpp */; };
 		BF6DF7C42CC2F32000772AA0 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF6DF7C22CC2F32000772AA0 /* Entity.cpp */; };
+		BFFA8D602CDEC44600C3ACDE /* windrise-background-4k.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = BFFA8D5B2CDEC1D800C3ACDE /* windrise-background-4k.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,6 +28,7 @@
 			dstSubfolderSpec = 6;
 			files = (
 				BF3541F32C8B932200F7B096 /* shaders in CopyFiles */,
+				BFFA8D602CDEC44600C3ACDE /* windrise-background-4k.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -66,6 +68,9 @@
 		BFFA8D5D2CDEC22900C3ACDE /* tilemap-characters_packed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "tilemap-characters_packed.png"; sourceTree = "<group>"; };
 		BFFA8D5E2CDEC26300C3ACDE /* Meow-Knight_Attack_3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Meow-Knight_Attack_3.png"; sourceTree = "<group>"; };
 		BFFA8D5F2CDEC2F900C3ACDE /* health_verylow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = health_verylow.png; sourceTree = "<group>"; };
+		BFFA8D652CDFD46A00C3ACDE /* enemy1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = enemy1.png; sourceTree = "<group>"; };
+		BFFA8D662CDFD46A00C3ACDE /* enemy2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = enemy2.png; sourceTree = "<group>"; };
+		BFFA8D672CDFD46A00C3ACDE /* enemy3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = enemy3.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +139,7 @@
 		BFFA8D5C2CDEC1D800C3ACDE /* assets */ = {
 			isa = PBXGroup;
 			children = (
+				BFFA8D5B2CDEC1D800C3ACDE /* windrise-background-4k.png */,
 				BFFA8D5F2CDEC2F900C3ACDE /* health_verylow.png */,
 				BFFA8D4D2CDEC1D800C3ACDE /* font1.png */,
 				BFFA8D4E2CDEC1D800C3ACDE /* galactic.mp3 */,
@@ -148,9 +154,11 @@
 				BFFA8D582CDEC1D800C3ACDE /* new_tilemap.png */,
 				BFFA8D592CDEC1D800C3ACDE /* retro-jump-3-236683.wav */,
 				BFFA8D5A2CDEC1D800C3ACDE /* tilemap.png */,
-				BFFA8D5B2CDEC1D800C3ACDE /* windrise-background-4k.png */,
 				BFFA8D5D2CDEC22900C3ACDE /* tilemap-characters_packed.png */,
 				BFFA8D5E2CDEC26300C3ACDE /* Meow-Knight_Attack_3.png */,
+				BFFA8D652CDFD46A00C3ACDE /* enemy1.png */,
+				BFFA8D662CDFD46A00C3ACDE /* enemy2.png */,
+				BFFA8D672CDFD46A00C3ACDE /* enemy3.png */,
 			);
 			path = assets;
 			sourceTree = "<group>";

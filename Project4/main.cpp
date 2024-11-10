@@ -58,11 +58,13 @@ struct GameState
 constexpr int WINDOW_WIDTH  = 640 * 2,
           WINDOW_HEIGHT = 800;
 
+constexpr int FONTBANK_SIZE = 16;
+
+
 constexpr float BG_RED     = 0.1922f,
             BG_BLUE    = 0.549f,
             BG_GREEN   = 0.9059f,
             BG_OPACITY = 1.0f;
-
 constexpr int VIEWPORT_X = 0,
           VIEWPORT_Y = 0,
           VIEWPORT_WIDTH  = WINDOW_WIDTH,
@@ -77,9 +79,13 @@ constexpr char MAP_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciCl
 
 constexpr char ENEMY_TILESET_FILEPATH[] = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/tilemap-characters_packed.png";
 
+constexpr char FONTSHEET_FILEPATH[]   = "/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/font1.png";
+
+
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
 constexpr GLint TEXTURE_BORDER   = 0;
+GLuint g_font_texture_id;
 
 constexpr int CD_QUAL_FREQ    = 44100,
           AUDIO_CHAN_AMT  = 2,     // stereo
@@ -93,6 +99,8 @@ constexpr int PLAY_ONCE = 0,    // play once, loop never
           ALL_SFX_CHNL = -1;
 
 constexpr int NUM_ENEMY = 3;
+
+
 // ––––– GLOBAL VARIABLES ––––– //
 GameState g_game_state;
 
@@ -106,6 +114,8 @@ float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
 
 int healthState = 0;
+int NUM_ACTIVE_ENEMY;
+bool isRunning = true;
 
 unsigned int MAP_DATA[] =
 {
@@ -114,8 +124,8 @@ unsigned int MAP_DATA[] =
         10, 0, 0, 0, 0, 0, 156, 156, 156, 156, 0, 0, 0, 0, 0, 10,  // Row 2
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 3
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 4
-        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 16, 16, 16, 0, 10,  // Row 5
-        10, 0, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 6
+        10, 0, 6, 6, 6, 6, 0, 0, 0, 0, 16, 16, 16, 16, 0, 10,  // Row 5
+        10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 10,  // Row 6
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 7
         10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,  // Row 8
         10, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20  // Row 9
@@ -152,6 +162,73 @@ GLuint load_texture(const char* filepath, FilterType filterType)
 
    return textureID;
 }
+
+void draw_text(ShaderProgram *shader_program, GLuint font_texture_id, std::string text,
+               float font_size, float spacing, glm::vec3 position)
+{
+    // Scale the size of the fontbank in the UV-plane
+    // We will use this for spacing and positioning
+    float width = 1.0f / FONTBANK_SIZE;
+    float height = 1.0f / FONTBANK_SIZE;
+
+    // Instead of having a single pair of arrays, we'll have a series of pairs—one for
+    // each character. Don't forget to include <vector>!
+    std::vector<float> vertices;
+    std::vector<float> texture_coordinates;
+
+    // For every character...
+    for (int i = 0; i < text.size(); i++) {
+        // 1. Get their index in the spritesheet, as well as their offset (i.e. their
+        //    position relative to the whole sentence)
+        int spritesheet_index = (int) text[i];  // ascii value of character
+        float offset = (font_size + spacing) * i;
+
+        // 2. Using the spritesheet index, we can calculate our U- and V-coordinates
+        float u_coordinate = (float) (spritesheet_index % FONTBANK_SIZE) / FONTBANK_SIZE;
+        float v_coordinate = (float) (spritesheet_index / FONTBANK_SIZE) / FONTBANK_SIZE;
+
+        // 3. Inset the current pair in both vectors
+        vertices.insert(vertices.end(), {
+            offset + (-0.5f * font_size), 0.5f * font_size,
+            offset + (-0.5f * font_size), -0.5f * font_size,
+            offset + (0.5f * font_size), 0.5f * font_size,
+            offset + (0.5f * font_size), -0.5f * font_size,
+            offset + (0.5f * font_size), 0.5f * font_size,
+            offset + (-0.5f * font_size), -0.5f * font_size,
+        });
+
+        texture_coordinates.insert(texture_coordinates.end(), {
+            u_coordinate, v_coordinate,
+            u_coordinate, v_coordinate + height,
+            u_coordinate + width, v_coordinate,
+            u_coordinate + width, v_coordinate + height,
+            u_coordinate + width, v_coordinate,
+            u_coordinate, v_coordinate + height,
+        });
+    }
+
+    // 4. And render all of them using the pairs
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+    model_matrix = glm::translate(model_matrix, position);
+
+    shader_program->set_model_matrix(model_matrix);
+    glUseProgram(shader_program->get_program_id());
+
+    glVertexAttribPointer(shader_program->get_position_attribute(), 2, GL_FLOAT, false, 0,
+                          vertices.data());
+    glEnableVertexAttribArray(shader_program->get_position_attribute());
+
+    glVertexAttribPointer(shader_program->get_tex_coordinate_attribute(), 2, GL_FLOAT,
+                          false, 0, texture_coordinates.data());
+    glEnableVertexAttribArray(shader_program->get_tex_coordinate_attribute());
+
+    glBindTexture(GL_TEXTURE_2D, font_texture_id);
+    glDrawArrays(GL_TRIANGLES, 0, (int) (text.size() * 6));
+
+    glDisableVertexAttribArray(shader_program->get_position_attribute());
+    glDisableVertexAttribArray(shader_program->get_tex_coordinate_attribute());
+}
+
 
 void initialise()
 {
@@ -272,21 +349,29 @@ void initialise()
     
     // ––––– Enemies ––––– //
     g_game_state.enemies = new Entity[NUM_ENEMY];
-    std::vector<std::vector<int>> enemy_animations = {
-        {0}
+    std::vector<GLuint> enemy_texture_ids = {
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/enemy1.png", NEAREST),
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/enemy2.png", NEAREST),
+        load_texture("/Users/jasonwu/Desktop/Coding/CompSciClasses/Game_Programming/Project4_GameProg/Project4/assets/enemy3.png", NEAREST)
     };
-
     
-//    for (int i = 0; i < NUM_ENEMY; i++)
-//    {
-//        g_game_state.enemies[i] =  Entity(enemy_texture_id, 1.0f, 1.0f, 1.0f, ENEMY, GUARD, IDLE);
-//    }
-
     
-    //    g_game_state.enemies[0]->set_position(glm::vec3(3.0f, -5.0f, 0.0f));
-    //    g_game_state.enemies[1]->set_position(glm::vec3(11.0f, -4.0f, 0.0f));
-    //    g_game_state.enemies[2]->set_position(glm::vec3(7.0f, -1.0f, 0.0f));
+    g_game_state.enemies[0] =  Entity(enemy_texture_ids[0], 0.0f, 1.0f, 1.0f, ENEMY, GUARD, ATTACKING);
+    g_game_state.enemies[1] =  Entity(enemy_texture_ids[1], 0.0f, 1.0f, 1.0f, ENEMY, GUARD, ATTACKING);
+    g_game_state.enemies[2] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, GUARD, ATTACKING);
+    for (int i = 0; i < NUM_ENEMY; i++)
+    {
+        g_game_state.enemies[i].set_scale(glm::vec3(1.0f,1.0f,0.0f));
+        g_game_state.enemies[i].set_movement(glm::vec3(0.0f));
+        g_game_state.enemies[i].set_acceleration(glm::vec3(0.0f, -9.81f, 0.0f));
+        g_game_state.enemies[i].activate();
+    }
 
+    g_game_state.enemies[0].set_position(glm::vec3(3.0f, -4.0f, 0.0f));
+    g_game_state.enemies[1].set_position(glm::vec3(11.0f, -4.0f, 0.0f));
+    g_game_state.enemies[2].set_position(glm::vec3(7.0f, -2.0f, 0.0f));
+    
+   
 
     // ––––– GENERAL ––––– //
     glEnable(GL_BLEND);
@@ -299,7 +384,9 @@ void process_input()
     g_game_state.player->set_movement(glm::vec3(0.0f));
 
     SDL_Event event;
-    g_game_state.player->set_animation_state(DEFAULT);
+    if (isRunning){
+        g_game_state.player->set_animation_state(DEFAULT);
+    }
     bool attacking;
     
     while (SDL_PollEvent(&event))
@@ -317,13 +404,16 @@ void process_input()
                         // Quit the game with a keystroke
                         g_game_is_running = false;
                         break;
-
+                    
+                    
                     case SDLK_SPACE:
                         // Jump
                         if (g_game_state.player->get_collided_bottom())
                         {
-                            g_game_state.player->jump();
-                            Mix_PlayChannel(NEXT_CHNL, g_game_state.jump_sfx, 0);
+                            if(isRunning){
+                                g_game_state.player->jump();
+                                Mix_PlayChannel(NEXT_CHNL, g_game_state.jump_sfx, 0);
+                            }
                         }
                         break;
 
@@ -347,23 +437,24 @@ void process_input()
 
     const Uint8 *key_state = SDL_GetKeyboardState(NULL);
 
-    
-    if (key_state[SDL_SCANCODE_A]) {
-        g_game_state.player->set_animation_state(ATTACK);
-        attacking = true;
-    }
-    else {
-        attacking = false;
-    }
- 
-    if (!attacking){
-        if (key_state[SDL_SCANCODE_LEFT])
-        {
-            g_game_state.player->move_left();
+    if (isRunning){
+        if (key_state[SDL_SCANCODE_A]) {
+            g_game_state.player->set_animation_state(ATTACK);
+            attacking = true;
         }
-        else if (key_state[SDL_SCANCODE_RIGHT])
-        {
-            g_game_state.player->move_right();
+        else {
+            attacking = false;
+        }
+     
+        if (!attacking){
+            if (key_state[SDL_SCANCODE_LEFT])
+            {
+                g_game_state.player->move_left();
+            }
+            else if (key_state[SDL_SCANCODE_RIGHT])
+            {
+                g_game_state.player->move_right();
+            }
         }
     }
     
@@ -392,19 +483,40 @@ void update()
 
     while (delta_time >= FIXED_TIMESTEP)
     {
-        g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
-                                    g_game_state.map);
+        int active = 0;
+        int playerCollsion = g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, NUM_ENEMY, g_game_state.map);
+        
+        for (int i = 0; i < NUM_ENEMY; i++){
+            g_game_state.enemies[i].update(0.0f,
+                                           g_game_state.player,
+                                           NULL, 0,
+                                           g_game_state.map);
+            if (g_game_state.enemies[i].isActive()) {
+                active++;
+            }
+        }
+        if (playerCollsion == 1) {
+            if (healthState < 4) {
+                healthState++;
+            }
+            else {
+                g_game_state.player->set_animation_state(DEATH);
+                isRunning = false;
+            }
+        }
+        NUM_ACTIVE_ENEMY = active;
+        if (NUM_ACTIVE_ENEMY == 0) {
+            isRunning = false;
+        }
+
         delta_time -= FIXED_TIMESTEP;
     }
     
     g_accumulator = delta_time;
     g_view_matrix = glm::mat4(1.0f);
     glm::vec3 player_pos = g_game_state.player->get_position();
-//    LOG("Player x:" << player_pos.x);
-//    LOG("Player y:" << player_pos.y);
-//    
+    
     // Camera Follows the player
-
     if (g_game_state.player->get_curr_animation() == ATTACK) {
         g_game_state.background->set_position(glm::vec3(player_pos.x - 0.5f, player_pos.y + 2.25f, 0.0f));
         g_game_state.healthbar->set_position(glm::vec3(player_pos.x + 4.0f, player_pos.y + 5.5f, 0.0f));
@@ -427,6 +539,23 @@ void render()
     g_game_state.background->render(&g_program);
     g_game_state.map->render(&g_program);
     g_game_state.healthbar[healthState].render(&g_program);
+    for (int i = 0; i < NUM_ENEMY; i++) {
+        if (g_game_state.enemies[i].isActive()){
+            g_game_state.enemies[i].render(&g_program);
+        }
+    }
+    
+    g_font_texture_id = load_texture(FONTSHEET_FILEPATH, NEAREST);
+     
+    if (NUM_ACTIVE_ENEMY == 0){
+        draw_text(&g_program, g_font_texture_id, "PLAYER WIN", 0.5f, 0.05f,
+              glm::vec3(g_game_state.player->get_position().x - 3.0f, g_game_state.player->get_position().y + 3.0f, 0.0f));
+    }
+    
+    if (healthState == 4) {
+        draw_text(&g_program, g_font_texture_id, "PLAYER LOSE", 0.5f, 0.05f,
+              glm::vec3(g_game_state.player->get_position().x - 3.0f, g_game_state.player->get_position().y + 3.0f, 0.0f));
+    }
     g_game_state.player->render(&g_program);
     SDL_GL_SwapWindow(g_display_window);
 }

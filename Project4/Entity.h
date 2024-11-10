@@ -76,14 +76,15 @@ public:
     Entity(std::vector<GLuint> texture_ids, float speed, glm::vec3 acceleration, float jump_power, std::vector<std::vector<int>> animations, float animation_time, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, Animation animation);
     Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType); // Simpler constructor
     Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState); // AI constructor
+    Entity(GLuint texture_id, float speed, glm::vec3 acceleration, int animation_index, int animation_cols, int animation_rows, float width, float height, EntityType EntityType, AIType AIType, AIState AIState);
     ~Entity();
 
     void draw_sprite_from_texture_atlas(ShaderProgram* program);
     bool const check_collision(Entity* other) const;
 
-    void const check_collision_y(Entity* collidable_entities, int collidable_entity_count);
-    void const check_collision_x(Entity* collidable_entities, int collidable_entity_count);
-    void update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map);
+    int const check_collision_y(Entity* collidable_entities, int collidable_entity_count);
+    int const check_collision_x(Entity* collidable_entities, int collidable_entity_count);
+    int update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map);
     void const check_collision_y(Map *map);
     void const check_collision_x(Map *map);
     void render(ShaderProgram* program);
@@ -128,6 +129,8 @@ public:
 
     void activate()   { m_is_active = true;  };
     void deactivate() { m_is_active = false; };
+    bool isActive()   { return m_is_active;  };
+
     // ————— SETTERS ————— //
     void const set_entity_type(EntityType new_entity_type)  { m_entity_type = new_entity_type;};
     void const set_ai_type(AIType new_ai_type){ m_ai_type = new_ai_type;};
