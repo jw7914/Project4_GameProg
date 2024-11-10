@@ -13,19 +13,20 @@
 #include "ShaderProgram.h"
 #include "Entity.h"
 
-void Entity::ai_activate(Entity *player)
+void Entity::ai_activate(Entity *player, float delta_time)
 {
 
-    if (m_ai_type == IDLE){
-        srand(time(NULL));
+    if (m_ai_type == PATROL){
+        m_theta += 1.0f * delta_time;
+        float movement = glm::sin(m_theta) * 1.5f;
 
-        int random_number = rand() % 2 + 1;
-        m_scale = glm::vec3(random_number, random_number, 0.0f);
-        
+        m_movement = glm::vec3(movement, 0.0f, 0.0f);
+            
         if (m_collided_bottom) {
             set_jumping_power(10.0f);
             jump();
         }
+
     }
     if (m_ai_type == JUMPING) {
         if (m_collided_bottom) {
@@ -396,7 +397,7 @@ int Entity::update(float delta_time, Entity *player, Entity *collidable_entities
         return 1;
     }
 
-    if (m_entity_type == ENEMY) ai_activate(player);
+    if (m_entity_type == ENEMY) ai_activate(player, delta_time);
     
     if (m_is_jumping)
     {

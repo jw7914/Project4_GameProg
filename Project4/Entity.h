@@ -6,7 +6,7 @@
 #include "ShaderProgram.h"
 
 enum EntityType { PLATFORM, PLAYER, ENEMY  };
-enum AIType   { IDLE, JUMPING, WALKING };
+enum AIType   { PATROL, JUMPING, WALKING };
 enum Animation { DEFAULT, ATTACK, DEATH, RUN, DAMAGE };
 
 
@@ -88,7 +88,7 @@ public:
     void const check_collision_x(Map *map);
     void render(ShaderProgram* program);
 
-    void ai_activate(Entity *player);
+    void ai_activate(Entity *player, float delta_time);
     void ai_walk();
     void ai_guard(Entity *player);
 

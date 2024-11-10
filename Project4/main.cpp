@@ -356,7 +356,7 @@ void initialise()
     };
     
     
-    g_game_state.enemies[0] =  Entity(enemy_texture_ids[0], 0.0f, 1.0f, 1.0f, ENEMY, IDLE);
+    g_game_state.enemies[0] =  Entity(enemy_texture_ids[0], 0.0f, 1.0f, 1.0f, ENEMY, PATROL);
     g_game_state.enemies[1] =  Entity(enemy_texture_ids[1], 0.0f, 1.0f, 1.0f, ENEMY, JUMPING);
     g_game_state.enemies[2] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, WALKING);
     g_game_state.enemies[3] =  Entity(enemy_texture_ids[2], 0.0f, 1.0f, 1.0f, ENEMY, WALKING);
@@ -370,12 +370,12 @@ void initialise()
         g_game_state.enemies[i].set_speed(1.0f);
     }
     
-    g_game_state.enemies[0].set_ai_type(IDLE);
+    g_game_state.enemies[0].set_ai_type(PATROL);
     g_game_state.enemies[1].set_ai_type(JUMPING);
     g_game_state.enemies[2].set_ai_type(WALKING);
     g_game_state.enemies[3].set_ai_type(WALKING);
 
-    g_game_state.enemies[0].set_position(glm::vec3(3.0f, -4.0f, 0.0f));
+    g_game_state.enemies[0].set_position(glm::vec3(2.0f, -4.0f, 0.0f));
     g_game_state.enemies[1].set_position(glm::vec3(11.0f, -4.0f, 0.0f));
     g_game_state.enemies[2].set_position(glm::vec3(7.0f, -2.0f, 0.0f));
     g_game_state.enemies[3].set_position(glm::vec3(7.0f, -2.0f, 0.0f));
